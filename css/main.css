@@ -1693,7 +1693,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #4d0f78;
+  background: #e7ff34;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2806,10 +2806,12 @@ pre .javascript .function {
     display: block !important;
   }
 }
+.mene {
+  margin-top: 0px;
+}
 .menu .menu-item {
   display: block;
   margin: 0;
-  margin-top: 0px;
 }
 .menu .menu-item a {
   position: relative;
