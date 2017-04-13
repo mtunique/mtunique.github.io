@@ -1,0 +1,943 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="E9BUv_tGgpJS8nq34xEpJS7ihzcUyAx3Clq_-vNNcCM" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="big-data,flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="MTUNIQUE'S BLOG" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="从何而来关系型API有很多好处：是声明式的，用户只需要告诉需要什么，系统决定如何计算；用户不必特地实现；更方便优化，可以执行得更高效。本身Flink就是一个统一批和流的分布式计算平台，所以社区设计关系型API的目的之一是可以让关系型API作为统一的一层，两种查询拥有同样的语义和语法。大多数流处理框架的API都是比较low-level的API，学习成本高而且很多逻辑需要写到UDF中，所以Apache">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅析 Flink Table/SQL API">
+<meta property="og:url" content="http://mtunique.com/flink_sql/index.html">
+<meta property="og:site_name" content="MTUNIQUE'S BLOG">
+<meta property="og:description" content="从何而来关系型API有很多好处：是声明式的，用户只需要告诉需要什么，系统决定如何计算；用户不必特地实现；更方便优化，可以执行得更高效。本身Flink就是一个统一批和流的分布式计算平台，所以社区设计关系型API的目的之一是可以让关系型API作为统一的一层，两种查询拥有同样的语义和语法。大多数流处理框架的API都是比较low-level的API，学习成本高而且很多逻辑需要写到UDF中，所以Apache">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/flink_table_arch.jpg">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/flink_sql_arch.jpg">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/to_logical_plan.jpg">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/trans.jpg">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/flink_stream_etl.jpg">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/flink_online_dashboard.jpg">
+<meta property="og:image" content="https://dn-mtunique.qbox.me/flink_adhoc.jpg">
+<meta property="og:updated_time" content="2017-04-08T10:32:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅析 Flink Table/SQL API">
+<meta name="twitter:description" content="从何而来关系型API有很多好处：是声明式的，用户只需要告诉需要什么，系统决定如何计算；用户不必特地实现；更方便优化，可以执行得更高效。本身Flink就是一个统一批和流的分布式计算平台，所以社区设计关系型API的目的之一是可以让关系型API作为统一的一层，两种查询拥有同样的语义和语法。大多数流处理框架的API都是比较low-level的API，学习成本高而且很多逻辑需要写到UDF中，所以Apache">
+<meta name="twitter:image" content="https://dn-mtunique.qbox.me/flink_table_arch.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '09NCP99UP7',
+      apiKey: '8e66d100d1302eb8450ee161f1141753',
+      indexName: 'mtunique',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://mtunique.com/flink_sql/"/>
+
+
+
+
+
+  <title> 浅析 Flink Table/SQL API | MTUNIQUE'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-65601165-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a8b1154449778952043f55241d1891e9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">MTUNIQUE'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-github">
+          <a href="https://github.com/mtunique" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-github"></i> <br />
+            
+            Github
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://mtunique.com/flink_sql/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mtunique">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MTUNIQUE'S BLOG">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                浅析 Flink Table/SQL API
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-21T22:38:00+08:00">
+                2017-03-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/" itemprop="url" rel="index">
+                    <span itemprop="name">big-data</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/flink/" itemprop="url" rel="index">
+                    <span itemprop="name">flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/flink_sql/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="flink_sql/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="从何而来"><a href="#从何而来" class="headerlink" title="从何而来"></a>从何而来</h2><p>关系型API有很多好处：是声明式的，用户只需要告诉需要什么，系统决定如何计算；用户不必特地实现；更方便优化，可以执行得更高效。本身Flink就是一个统一批和流的分布式计算平台，所以社区设计关系型API的目的之一是可以让关系型API作为统一的一层，两种查询拥有同样的语义和语法。大多数流处理框架的API都是比较low-level的API，学习成本高而且很多逻辑需要写到UDF中，所以Apache Flink 添加了SQL-like的API处理关系型数据–Table API。这套API中最重要的概念是<code>Table</code>(可以在上面进行关系型操作的结构化的DataSet或DataStream)。<code>Table</code> API 与 <code>DataSet</code>和<code>DataStream</code> API 结合紧密，DataSet 和 DataStream都可以很容易地转换成 Table，同样转换回来也很方便：</p>
+<a id="more"></a>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> execEnv = <span class="type">ExecutionEnvironment</span>.getExecutionEnvironment</div><div class="line"><span class="keyword">val</span> tableEnv = <span class="type">TableEnvironment</span>.getTableEnvironment(execEnv)</div><div class="line"></div><div class="line"><span class="comment">// obtain a DataSet from somewhere</span></div><div class="line"><span class="keyword">val</span> tempData: <span class="type">DataSet</span>[(<span class="type">String</span>, <span class="type">Long</span>, <span class="type">Double</span>)] =</div><div class="line"></div><div class="line"><span class="comment">// convert the DataSet to a Table</span></div><div class="line"><span class="keyword">val</span> tempTable: <span class="type">Table</span> = tempData.toTable(tableEnv, <span class="symbol">'location</span>, <span class="symbol">'time</span>, <span class="symbol">'tempF</span>)</div><div class="line"><span class="comment">// compute your result</span></div><div class="line"><span class="keyword">val</span> avgTempCTable: <span class="type">Table</span> = tempTable</div><div class="line"> .where(<span class="symbol">'location</span>.like(<span class="string">"room%"</span>))</div><div class="line"> .select(</div><div class="line">   (<span class="symbol">'time</span> / (<span class="number">3600</span> * <span class="number">24</span>)) as <span class="symbol">'day</span>, </div><div class="line">   <span class="symbol">'Location</span> as <span class="symbol">'room</span>, </div><div class="line">   ((<span class="symbol">'tempF</span> - <span class="number">32</span>) * <span class="number">0.556</span>) as <span class="symbol">'tempC</span></div><div class="line">  )</div><div class="line"> .groupBy(<span class="symbol">'day</span>, <span class="symbol">'room</span>)</div><div class="line"> .select(<span class="symbol">'day</span>, <span class="symbol">'room</span>, <span class="symbol">'tempC</span>.avg as <span class="symbol">'avgTempC</span>)</div><div class="line"><span class="comment">// convert result Table back into a DataSet and print it</span></div><div class="line">avgTempCTable.toDataSet[<span class="type">Row</span>].print()</div></pre></td></tr></table></figure>
+<p>example使用的是Scala的API，Java版API也有同样的功能。</p>
+<p>下图展示了 Table API 的架构:</p>
+<p><img src="https://dn-mtunique.qbox.me/flink_table_arch.jpg" alt=""></p>
+<p>从 DataSet 或 DataStream 创建一个 Table，然后在上面进行关系型操作比如 <code>fliter</code>、<code>join</code>、<code>select</code>。对Table的操作将会转换成逻辑运算符树。Table 转换回 DataSet 和 DataStream 的时候将会转换成DataSet 和 DataStream的算子。有些类似 <code>&#39;location.like(&quot;room%&quot;)</code> 的表达式将会通过 <code>code generation</code> 编译成Flink的函数。</p>
+<p>然而，最初传统的Table API 有一定的限制。首先，它不能独立使用。Table API 的 query 必须嵌入到 DataSet 或 DataStream的程序中。对批处理表的查询不支持<code>outer join</code>，<code>sorting</code>和很多SQL中常见的标量函数。对于流处理的查询只支持<code>filtetr</code> <code>union</code> 和 <code>projection</code>，不支持<code>aggregation</code>和<code>join</code>。而且，转换过程中没有利用太多查询优化技术，除了适用于所有DataSet程序的优化。</p>
+<h2 id="Table-API-和-SQL-紧密结合"><a href="#Table-API-和-SQL-紧密结合" class="headerlink" title="Table API 和 SQL 紧密结合"></a>Table API 和 SQL 紧密结合</h2><p>随着流处理的日益普及和Flink在该领域的增长，Flink社区认为需要一个更简单的API使更多的用户能够分析流数据。一年前Flink社区决定将Table API提升到一个新的层级，扩展Table API中流处理的能力以及支持SQL。社区不想重复造轮子，于是决定在 <a href="https://calcite.apache.org/" target="_blank" rel="external">Apache Calcite</a> (一个比较流行的SQL解析和优化框架)的基础上构建新的 Table API。Apache Calcite 被用在很多项目中，包括 Apache Hive，Apache Drill，Cascading等等。除此之外，Calcite社区将 <a href="https://calcite.apache.org/docs/stream.html" target="_blank" rel="external">SQL on Stream</a> 写入它的roadmap，所以Flink的SQL很适合和它结合。</p>
+<p>以Calcite为核心的新架构图:</p>
+<p><img src="https://dn-mtunique.qbox.me/flink_sql_arch.jpg" alt=""></p>
+<p>新架构提供两种API进行关系型查询，Table API 和 SQL。这两种API的查询都会用包含注册过的Table的catalog进行验证，然后转换成统一Calcite的logical plan。在这种表示中，stream和batch的查询看起来完全一样。下一步，利用 Calcite的 cost-based 优化器优化转换规则和logical plan。根据数据源的性质(流式和静态)使用不同的规则进行优化。最终优化后的plan转传成常规的Flink DataSet 或 DataStream 程序。这步还涉及code generation（将关系表达式转换成Flink函数）。</p>
+<p>下面我们举一个例子来理解新的架构。表达式转换成Logical Plan如下图所示：</p>
+<p><img src="https://dn-mtunique.qbox.me/to_logical_plan.jpg" alt=""></p>
+<p>调用Table API 实际上是创建了很多 Table API 的 <code>LogicalNode</code>，创建的过程中对会对整个query进行validate。比如table是<code>CalalogNode</code>，window groupBy之后在select时会创建<code>WindowAggregate</code>和<code>Project</code>，where对应<code>Filter</code>。然后用<code>RelBuilder</code>翻译成Calcite LogicalPlan。如果是SQL API 将直接用Calcite的Parser进行解释然后validate生成Calcite LogicalPlan。</p>
+<p><img src="https://dn-mtunique.qbox.me/trans.jpg" alt=""></p>
+<p>利用Calcite内置的一些rule来优化LogicalPlan，也可以自己添加或者覆盖这些rule。转换成Optimized Calcite Plan后，仍然是Calcite的内部表示方式，现在需要transform成DataStream Plan，对应上图第三列的类，里面封装了如何translate成普通的DataStream或DataSet程序。随后调用相应的<code>tanslateToPlan</code>方法转换和利用CodeGen元编程成Flink的各种算子。现在就相当于我们直接利用Flink的DataSet或DataStream API开发的程序。</p>
+<p>Table API的新架构除了维持最初的原理还改进了很多。为流式数据和静态数据的关系查询保留统一的接口，而且利用了Calcite的查询优化框架和SQL parser。该设计是基于Flink已构建好的API构建的，DataStream API 提供低延时高吞吐的流处理能力而且就有exactly-once语义而且可以基于event-time进行处理。而且DataSet拥有稳定高效的内存算子和流水线式的数据交换。Flink的core API和引擎的所有改进都会自动应用到Table API和SQL上。</p>
+<p>新的SQL接口集成到了Table API中。DataSteam， DataSet和外部数据源可以在TableEnvironment中注册成表，为了是他们可以通过SQL进行查询。<code>TableEnvironment.sql()</code>方法用来声明SQL和将结果作为Table返回。下面的是一个完整的样例，从一个JSON编码的Kafka topic中读取流表，然后用SQL处理并写到另一个Kafka topic。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// get environments</span></div><div class="line"><span class="keyword">val</span> execEnv = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment</div><div class="line"><span class="keyword">val</span> tableEnv = <span class="type">TableEnvironment</span>.getTableEnvironment(execEnv)</div><div class="line"></div><div class="line"><span class="comment">// configure Kafka connection</span></div><div class="line"><span class="keyword">val</span> kafkaProps = ...</div><div class="line"><span class="comment">// define a JSON encoded Kafka topic as external table</span></div><div class="line"><span class="keyword">val</span> sensorSource = <span class="keyword">new</span> <span class="type">KafkaJsonSource</span>[(<span class="type">String</span>, <span class="type">Long</span>, <span class="type">Double</span>)](</div><div class="line">    <span class="string">"sensorTopic"</span>,</div><div class="line">    kafkaProps,</div><div class="line">    (<span class="string">"location"</span>, <span class="string">"time"</span>, <span class="string">"tempF"</span>))</div><div class="line"></div><div class="line"><span class="comment">// register external table</span></div><div class="line">tableEnv.registerTableSource(<span class="string">"sensorData"</span>, sensorSource)</div><div class="line"></div><div class="line"><span class="comment">// define query in external table</span></div><div class="line"><span class="keyword">val</span> roomSensors: <span class="type">Table</span> = tableEnv.sql(</div><div class="line">    <span class="string">"SELECT STREAM time, location AS room, (tempF - 32) * 0.556 AS tempC "</span> +</div><div class="line">    <span class="string">"FROM sensorData "</span> +</div><div class="line">    <span class="string">"WHERE location LIKE 'room%'"</span></div><div class="line">  )</div><div class="line"></div><div class="line"><span class="comment">// define a JSON encoded Kafka topic as external sink</span></div><div class="line"><span class="keyword">val</span> roomSensorSink = <span class="keyword">new</span> <span class="type">KafkaJsonSink</span>(...)</div><div class="line"></div><div class="line"><span class="comment">// define sink for room sensor data and execute query</span></div><div class="line">roomSensors.toSink(roomSensorSink)</div><div class="line">execEnv.execute()</div></pre></td></tr></table></figure>
+<p>这个样例中忽略了流处理中最有趣的部分：window aggregate 和 join。这些操作如何用SQL表达呢？Apache Calcite社区提出了一个proposal来讨论<a href="https://calcite.apache.org/docs/stream.html" target="_blank" rel="external">SQL on streams</a>的语法和语义。社区将Calcite的stream SQL描述为标准SQL的扩展而不是另外的 SQL-like语言。这有很多好处，首先，熟悉SQL标准的人能够在不学习新语法的情况下分析流数据。静态表和流表的查询几乎相同，可以轻松地移植。此外，可以同时在静态表和流表上进行查询，这和flink的愿景是一样的，将批处理看做特殊的流处理(批看作是有限的流)。最后，使用标准SQL进行流处理意味着有很多成熟的工具支持。</p>
+<p>下面的example展示了如何用SQL和Table API进行滑动窗口查询:</p>
+<p>SQL<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> STREAM</div><div class="line">  TUMBLE_END(<span class="keyword">time</span>, <span class="built_in">INTERVAL</span> <span class="string">'1'</span> <span class="keyword">DAY</span>) <span class="keyword">AS</span> <span class="keyword">day</span>,</div><div class="line">  location <span class="keyword">AS</span> room,</div><div class="line">  <span class="keyword">AVG</span>((tempF - <span class="number">32</span>) * <span class="number">0.556</span>) <span class="keyword">AS</span> avgTempC</div><div class="line"><span class="keyword">FROM</span> sensorData</div><div class="line"><span class="keyword">WHERE</span> location <span class="keyword">LIKE</span> <span class="string">'room%'</span></div><div class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> TUMBLE(<span class="keyword">time</span>, <span class="built_in">INTERVAL</span> <span class="string">'1'</span> <span class="keyword">DAY</span>), location</div></pre></td></tr></table></figure></p>
+<p>Table API<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> avgRoomTemp: <span class="type">Table</span> = tableEnv.ingest(<span class="string">"sensorData"</span>)</div><div class="line">  .where(<span class="symbol">'location</span>.like(<span class="string">"room%"</span>))</div><div class="line">  .partitionBy(<span class="symbol">'location</span>)</div><div class="line">  .window(<span class="type">Tumbling</span> every <span class="type">Days</span>(<span class="number">1</span>) on <span class="symbol">'time</span> as <span class="symbol">'w</span>)</div><div class="line">  .select(<span class="symbol">'w</span>.end, <span class="symbol">'location</span>, , ((<span class="symbol">'tempF</span> - <span class="number">32</span>) * <span class="number">0.556</span>).avg as <span class="symbol">'avgTempCs</span>)</div></pre></td></tr></table></figure></p>
+<h2 id="Table-API的现状"><a href="#Table-API的现状" class="headerlink" title="Table API的现状"></a>Table API的现状</h2><h3 id="Batch-SQL-amp-Table-API-支持"><a href="#Batch-SQL-amp-Table-API-支持" class="headerlink" title="Batch SQL &amp; Table API 支持:"></a>Batch SQL &amp; Table API 支持:</h3><ul>
+<li>Selection, Projection, Sort, Inner &amp; Outer Joins, Set operations</li>
+<li>Windows for Slide, Tumble, Session</li>
+</ul>
+<h3 id="Streaming-Table-API-支持"><a href="#Streaming-Table-API-支持" class="headerlink" title="Streaming Table API 支持:"></a>Streaming Table API 支持:</h3><ul>
+<li>Selection, Projection, Union</li>
+<li>Windows for Slide, Tumble, Session</li>
+</ul>
+<h3 id="Streaming-SQL"><a href="#Streaming-SQL" class="headerlink" title="Streaming SQL:"></a>Streaming SQL:</h3><ul>
+<li>Selection, Projection, Union, Tumble</li>
+</ul>
+<h2 id="Streaming-SQL案例"><a href="#Streaming-SQL案例" class="headerlink" title="Streaming SQL案例"></a>Streaming SQL案例</h2><h3 id="持续的ETL和数据导入"><a href="#持续的ETL和数据导入" class="headerlink" title="持续的ETL和数据导入"></a>持续的ETL和数据导入</h3><p><img src="https://dn-mtunique.qbox.me/flink_stream_etl.jpg" alt=""></p>
+<p>获取流式数据，然后转换这些数据（归一化，聚合…），将其写入其他系统（File，Kafka，DBMS）。这些query的结果通常会存储到log-style的系统。</p>
+<h3 id="实时的Dashboards-和-报表"><a href="#实时的Dashboards-和-报表" class="headerlink" title="实时的Dashboards 和 报表"></a>实时的Dashboards 和 报表</h3><p><img src="https://dn-mtunique.qbox.me/flink_online_dashboard.jpg" alt=""></p>
+<p>获取流式数据，然后对数据进行聚合来支持在线系统（dashboard，推荐）或者数据分析系统（Tableau）。通常结果被写到k-v存储中（Cassandra，Hbase，可查询的Flink状态），建立索引（Elasticsearch）或者DBMS（MySQL，PostgreSQL…）。这些查询通常可以被更新，改进。</p>
+<h3 id="即席分析"><a href="#即席分析" class="headerlink" title="即席分析"></a>即席分析</h3><p><img src="https://dn-mtunique.qbox.me/flink_adhoc.jpg" alt=""></p>
+<p>针对流数据的即席查询，以实时的方式进行分析和浏览数据。查询结果直接显示在notebook（Apache Zeppelin）中。</p>
+<p>Flink社区还提出来和数据库中<code>Materialized View</code>很相似的<code>Dynamic table 动态表</code>概念，将在以后的版本中支持，具体细节将另开文章解释。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/big-data/" rel="tag"># big-data</a>
+          
+            <a href="/tags/flink/" rel="tag"># flink</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spark_flink_mem/" rel="next" title="【未完成】spark和flink的内存管理简单介绍和对比">
+                <i class="fa fa-chevron-left"></i> 【未完成】spark和flink的内存管理简单介绍和对比
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/flink_sql_outlook/" rel="prev" title="Flink Table/SQL API 规划 —— Dynamic Table">
+                Flink Table/SQL API 规划 —— Dynamic Table <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Mtunique" />
+          <p class="site-author-name" itemprop="name">Mtunique</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/mtunique" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/671233595" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.linkedin.com/in/mtunique" target="_blank" title="LinkedIn">
+                  
+                    <i class="fa fa-fw fa-linkedin-square"></i>
+                  
+                  LinkedIn
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#从何而来"><span class="nav-number">1.</span> <span class="nav-text">从何而来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Table-API-和-SQL-紧密结合"><span class="nav-number">2.</span> <span class="nav-text">Table API 和 SQL 紧密结合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Table-API的现状"><span class="nav-number">3.</span> <span class="nav-text">Table API的现状</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Batch-SQL-amp-Table-API-支持"><span class="nav-number">3.1.</span> <span class="nav-text">Batch SQL & Table API 支持:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Streaming-Table-API-支持"><span class="nav-number">3.2.</span> <span class="nav-text">Streaming Table API 支持:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Streaming-SQL"><span class="nav-number">3.3.</span> <span class="nav-text">Streaming SQL:</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Streaming-SQL案例"><span class="nav-number">4.</span> <span class="nav-text">Streaming SQL案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#持续的ETL和数据导入"><span class="nav-number">4.1.</span> <span class="nav-text">持续的ETL和数据导入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实时的Dashboards-和-报表"><span class="nav-number">4.2.</span> <span class="nav-text">实时的Dashboards 和 报表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#即席分析"><span class="nav-number">4.3.</span> <span class="nav-text">即席分析</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mtunique</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/jquery_lazyload/1.9.3/jquery.lazyload.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/velocity/1.2.3/velocity.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/velocity/1.2.3/velocity.ui.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://mtunique.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://mtunique.com/flink_sql/';
+          this.page.identifier = 'flink_sql/';
+          this.page.title = '浅析 Flink Table/SQL API';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://mtunique.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

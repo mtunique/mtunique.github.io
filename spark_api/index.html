@@ -1,0 +1,933 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="E9BUv_tGgpJS8nq34xEpJS7ihzcUyAx3Clq_-vNNcCM" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="big-data,spark," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="MTUNIQUE'S BLOG" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="在这里查看 Apache Spark 2.0 Api 的改进：RDD，DataFrame，DataSet和SQL
+
+Apache Spark 正在快速发展，包括更改和添加核心API。最具破坏性的改变之一是dataset。 Spark 1.0 使用RDD API，但是在最近的十二个月引入了两个新不兼容的API。Spark 1.3 引入了完全不同的DataFrame API 而且最近发布的 Spar">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何选择三种Spark API">
+<meta property="og:url" content="http://mtunique.com/spark_api/index.html">
+<meta property="og:site_name" content="MTUNIQUE'S BLOG">
+<meta property="og:description" content="在这里查看 Apache Spark 2.0 Api 的改进：RDD，DataFrame，DataSet和SQL
+
+Apache Spark 正在快速发展，包括更改和添加核心API。最具破坏性的改变之一是dataset。 Spark 1.0 使用RDD API，但是在最近的十二个月引入了两个新不兼容的API。Spark 1.3 引入了完全不同的DataFrame API 而且最近发布的 Spar">
+<meta property="og:updated_time" content="2017-01-07T11:56:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何选择三种Spark API">
+<meta name="twitter:description" content="在这里查看 Apache Spark 2.0 Api 的改进：RDD，DataFrame，DataSet和SQL
+
+Apache Spark 正在快速发展，包括更改和添加核心API。最具破坏性的改变之一是dataset。 Spark 1.0 使用RDD API，但是在最近的十二个月引入了两个新不兼容的API。Spark 1.3 引入了完全不同的DataFrame API 而且最近发布的 Spar">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '09NCP99UP7',
+      apiKey: '8e66d100d1302eb8450ee161f1141753',
+      indexName: 'mtunique',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://mtunique.com/spark_api/"/>
+
+
+
+
+
+  <title> 如何选择三种Spark API | MTUNIQUE'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-65601165-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a8b1154449778952043f55241d1891e9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">MTUNIQUE'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-github">
+          <a href="https://github.com/mtunique" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-github"></i> <br />
+            
+            Github
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://mtunique.com/spark_api/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mtunique">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MTUNIQUE'S BLOG">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                如何选择三种Spark API
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-11T14:30:00+08:00">
+                2016-11-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/" itemprop="url" rel="index">
+                    <span itemprop="name">big-data</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spark_api/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="spark_api/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>在<a href="http://www.agildata.com/apache-spark-2-0-api-improvements-rdd-dataframe-dataset-sql/" target="_blank" rel="external">这里</a>查看 Apache Spark 2.0 Api 的改进：RDD，DataFrame，DataSet和SQL</p>
+</blockquote>
+<p>Apache Spark 正在快速发展，包括更改和添加核心API。最具破坏性的改变之一是dataset。 Spark 1.0 使用RDD API，但是在最近的十二个月引入了两个新不兼容的API。Spark 1.3 引入了完全不同的DataFrame API 而且最近发布的 Spark 1.6 引入了 Dataset API 浏览版。</p>
+<p>很多现有的 Spark 开发者想知道是否应该从 RDDs 直接切换到 Dataset API，或者先切换到 DataFrame API。Spark 新手应该选择哪个 API 开始学习。</p>
+<p>这篇文章将提供每个API的概述，并且总结了每个的优缺点。 <a href="https://github.com/AgilData/spark-rdd-dataframe-dataset" target="_blank" rel="external">配套的github repo</a>提供了例子，可以从这开始实验文中提到的方法。yd</p>
+<p>RDD (弹性分布式数据集) API 从 1.0 开始一直存在 Spark 中。 这个接口和 Java 版本 JavaRDD 对于已经完成标准Spark教程的任何开发人员来说都是熟悉的。从开发人员的角度来看，RDD只是一组表示数据的Java或Scala对象。</p>
+<p>RDD API 提供很多转换方法来在数据上执行计算，比如 <code>map()</code> ， <code>filter()</code> ，和 <code>reduce()</code> 。这些方法的结果表示转换后的新RDD。 然而，这些方法只是定义要执行的操作，直到调用action方法才执行转换。action 方法比如是： <code>collect()</code> 和 <code>saveAsObjectFile()</code>.</p>
+<a id="more"></a>
+<h3 id="RDD-转换和action例子"><a href="#RDD-转换和action例子" class="headerlink" title="RDD 转换和action例子"></a>RDD 转换和action例子</h3><h4 id="Scala"><a href="#Scala" class="headerlink" title="Scala:"></a>Scala:</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">rdd.filter(_.age &gt; <span class="number">21</span>)              <span class="comment">// transformation</span></div><div class="line">   .map(_.last)                     <span class="comment">// transformation</span></div><div class="line">   .saveAsObjectFile(<span class="string">"under21.bin"</span>) <span class="comment">// action</span></div></pre></td></tr></table></figure>
+<h4 id="java"><a href="#java" class="headerlink" title="java:"></a>java:</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">rdd.filter(p -&gt; p.getAge() &lt; <span class="number">21</span>)     <span class="comment">// transformation</span></div><div class="line">   .map(p -&gt; p.getLast())            <span class="comment">// transformation</span></div><div class="line">   .saveAsObjectFile(<span class="string">"under21.bin"</span>); <span class="comment">// action</span></div></pre></td></tr></table></figure>
+<p>RDD 主要的优势是简单且易于理解，因为他们涉及具体的类，提供了熟悉的面向对象的编程风格，而且编译时类型检查。比如，给定包含Person实例的RDD，我们可以通过引用每个Person对象的age属性来按年龄过滤：</p>
+<h3 id="用RDD按属性过滤的例子"><a href="#用RDD按属性过滤的例子" class="headerlink" title="用RDD按属性过滤的例子"></a>用RDD按属性过滤的例子</h3><h4 id="Scala-1"><a href="#Scala-1" class="headerlink" title="Scala:"></a>Scala:</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">rdd.filter(_.age &gt; <span class="number">21</span>)</div></pre></td></tr></table></figure>
+<h4 id="Java"><a href="#Java" class="headerlink" title="Java:"></a>Java:</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">rdd.filter(person -&gt; person.getAge() &gt; <span class="number">21</span>)</div></pre></td></tr></table></figure>
+<p>RDD主要的劣势是表现不是特别好。每当 Spark 需要在集群中奋发数据或者将数据写入硬盘，默认试用 Java 序列化（尽管在大多数情况下可以试用 Kryo 作为更快的替代方案）。序列化单个 Java 和 Scala 对象的开销是昂贵的而且需要在节点之间传输数据（每个序列化对象包括类的结构和数据）。还有由创建和销毁单个对象导致的垃圾回收的开销。</p>
+<h2 id="DataFrame-API"><a href="#DataFrame-API" class="headerlink" title="DataFrame API"></a>DataFrame API</h2><p>Spark 1.3引入了一个新的DataFrame API作为Project Tungsten计划的一部分，旨在提高Spark的性能和可扩展性。 DataFrame API引入了一个模式的概念来描述数据，允许Spark管理模式，并且只在节点之间传递数据，而不是使用Java序列化。在单个进程中执行计算时也有优势，因为Spark可以将数据以二进制格式序列化到堆外存储中，然后直接对此堆外存储器执行许多转换，从而避免为数据集中的每一行构建单个对象造成的垃圾回收成本。 因为Spark理解了模式，所以不需要使用Java序列化来编码数据。</p>
+<p>DataFrame API与RDD API截然不同，因为它是一个用于构建关系型查询计划的API，Spark的Catalyst优化器随后可以执行它。 对于熟悉构建查询计划的开发人员来说，这种API非常自然，但对于大多数开发人员来说并不自然。 查询计划可以从字符串中的SQL表达式构建或更函数式的方式构建（通过流式API）。</p>
+<h3 id="用DataFrame按属性过滤的例子"><a href="#用DataFrame按属性过滤的例子" class="headerlink" title="用DataFrame按属性过滤的例子"></a>用DataFrame按属性过滤的例子</h3><p><em>请注意，这些示例在Java和Scala中具有相同的语法</em></p>
+<h4 id="SQL-风格"><a href="#SQL-风格" class="headerlink" title="SQL 风格"></a>SQL 风格</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">df.filter(<span class="string">"age &gt; 21"</span>);</div></pre></td></tr></table></figure>
+<h4 id="表达式构建器风格"><a href="#表达式构建器风格" class="headerlink" title="表达式构建器风格"></a>表达式构建器风格</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">df.filter(df.col(<span class="string">"age"</span>).gt(<span class="number">21</span>));</div></pre></td></tr></table></figure>
+<p>因为代码按名称引用数据属性，所以编译器不可能捕获任何错误。 如果属性名不正确，那么只有在创建查询计划时才会在运行时检测到错误。</p>
+<p>DataFrame API的另一个缺点是它非常以Scala为中心，虽然它支持Java，但支持有限。 例如，从Java对象的现有RDD创建DataFrame时，Spark的Catalyst优化程序无法推断该模式，并假定DataFrame中的任何对象都实现了scala.Product接口。 Scala case类实现了这个接口，因为它们实现了这个接口。</p>
+<h2 id="Dataset-API"><a href="#Dataset-API" class="headerlink" title="Dataset API"></a>Dataset API</h2><p>在Spark 1.6中作为API预览发布的Dataset API旨在提供两个方式中最好的部分; 熟悉的面向对象编程风格和RDD API的编译时类型安全性，但具有Catalyst查询优化器的性能优势。 Dataset 也使用与 DataFrame API 相同的高效堆外存储机制。</p>
+<p>当涉及序列化数据时，Dataset API具有在JVM表示（对象）和Spark的内部二进制格式之间转换的编码器的概念。 Spark具有内置的编码器，这些编码器非常先进，它们生成字节码以与堆外数据进行交互，并提供对各个属性的按需访问，而不必对整个对象进行反序列化。 Spark还没有提供用于实现自定义编码器的API，但是计划在将来的版本中提供。</p>
+<p>此外，Dataset API设计为与Java和Scala同样工作良好。 当使用Java对象时，重要的是它们完全符合bean。在编写本文附带的示例时，当试图从不完全与bean兼容的Java对象列表中创建Java中的Dataset时，我们遇到了错误。</p>
+<h3 id="从对象列表创建Dataset"><a href="#从对象列表创建Dataset" class="headerlink" title="从对象列表创建Dataset"></a>从对象列表创建Dataset</h3><h4 id="scala"><a href="#scala" class="headerlink" title="scala"></a>scala</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</div><div class="line"><span class="keyword">val</span> sqlContext = <span class="keyword">new</span> <span class="type">SQLContext</span>(sc)</div><div class="line"><span class="keyword">import</span> sqlContext.implicits._</div><div class="line"><span class="keyword">val</span> sampleData: <span class="type">Seq</span>[<span class="type">ScalaPerson</span>] = <span class="type">ScalaData</span>.sampleData()</div><div class="line"><span class="keyword">val</span> dataset = sqlContext.createDataset(sampleData)</div></pre></td></tr></table></figure>
+<h4 id="java-1"><a href="#java-1" class="headerlink" title="java"></a>java</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">JavaSparkContext sc = <span class="keyword">new</span> JavaSparkContext(sparkConf);</div><div class="line">SQLContext sqlContext = <span class="keyword">new</span> SQLContext(sc);</div><div class="line">List data = JavaData.sampleData();</div><div class="line">Dataset dataset = sqlContext.createDataset(data, Encoders.bean(JavaPerson.class));</div></pre></td></tr></table></figure>
+<p>使用Dataset API的转换看起来非常像RDD API，并且处理Person类，而不是行的抽象。</p>
+<h3 id="用Dataset按属性过滤的例子"><a href="#用Dataset按属性过滤的例子" class="headerlink" title="用Dataset按属性过滤的例子"></a>用Dataset按属性过滤的例子</h3><h4 id="Scala-2"><a href="#Scala-2" class="headerlink" title="Scala:"></a>Scala:</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">rdd.filter(_.age &lt; <span class="number">21</span>)</div></pre></td></tr></table></figure>
+<h4 id="Java-1"><a href="#Java-1" class="headerlink" title="Java:"></a>Java:</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">rdd.filter(person -&gt; person.getAge() &lt; <span class="number">21</span>)</div></pre></td></tr></table></figure>
+<p>尽管与RDD代码相似，但是该代码正在构建查询计划，而不是处理单个对象，如果age是唯一访问的属性，那么对象的其余数据将不会从堆外存储中读取。</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>如果你是主要在Java开发，那么在采用DataFrame或Dataset API之前，值得考虑移动到Scala。 虽然有努力支持Java，但是Spark是用Scala编写的，使得处理Java对象变得困难（但不是不可能）。</p>
+<p>如果你是在用Scala开发，需要你的代码使用Spark 1.6.0生产，那么DataFrame API显然是最稳定的选择，目前提供最好的性能。</p>
+<p>但是，Dataset API预览版看起来很有前景，并提供了一种更自然的代码编写方式。 鉴于Spark的快速发展，很可能这个API将在2016年快速成熟，并成为开发新应用的实际API。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/big-data/" rel="tag"># big-data</a>
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/python_datastruct/" rel="next" title="python实现各基本数据结构（1）——离散和线性">
+                <i class="fa fa-chevron-left"></i> python实现各基本数据结构（1）——离散和线性
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/docker_debug/" rel="prev" title="Docker 调试技巧">
+                Docker 调试技巧 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Mtunique" />
+          <p class="site-author-name" itemprop="name">Mtunique</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/mtunique" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/671233595" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.linkedin.com/in/mtunique" target="_blank" title="LinkedIn">
+                  
+                    <i class="fa fa-fw fa-linkedin-square"></i>
+                  
+                  LinkedIn
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#RDD-转换和action例子"><span class="nav-number">1.</span> <span class="nav-text">RDD 转换和action例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Scala"><span class="nav-number">1.1.</span> <span class="nav-text">Scala:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#java"><span class="nav-number">1.2.</span> <span class="nav-text">java:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用RDD按属性过滤的例子"><span class="nav-number">2.</span> <span class="nav-text">用RDD按属性过滤的例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Scala-1"><span class="nav-number">2.1.</span> <span class="nav-text">Scala:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java"><span class="nav-number">2.2.</span> <span class="nav-text">Java:</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DataFrame-API"><span class="nav-number"></span> <span class="nav-text">DataFrame API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用DataFrame按属性过滤的例子"><span class="nav-number">1.</span> <span class="nav-text">用DataFrame按属性过滤的例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SQL-风格"><span class="nav-number">1.1.</span> <span class="nav-text">SQL 风格</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#表达式构建器风格"><span class="nav-number">1.2.</span> <span class="nav-text">表达式构建器风格</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dataset-API"><span class="nav-number"></span> <span class="nav-text">Dataset API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从对象列表创建Dataset"><span class="nav-number">1.</span> <span class="nav-text">从对象列表创建Dataset</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#scala"><span class="nav-number">1.1.</span> <span class="nav-text">scala</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#java-1"><span class="nav-number">1.2.</span> <span class="nav-text">java</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用Dataset按属性过滤的例子"><span class="nav-number">2.</span> <span class="nav-text">用Dataset按属性过滤的例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Scala-2"><span class="nav-number">2.1.</span> <span class="nav-text">Scala:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-1"><span class="nav-number">2.2.</span> <span class="nav-text">Java:</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number"></span> <span class="nav-text">结论</span></a></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mtunique</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/jquery_lazyload/1.9.3/jquery.lazyload.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/velocity/1.2.3/velocity.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/velocity/1.2.3/velocity.ui.min.js"></script>
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://mtunique.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://mtunique.com/spark_api/';
+          this.page.identifier = 'spark_api/';
+          this.page.title = '如何选择三种Spark API';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://mtunique.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
