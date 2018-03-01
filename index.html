@@ -332,6 +332,174 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://mtunique.com/flink_rescalable_state/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mtunique">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MTUNIQUE'S BLOG">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/flink_rescalable_state/" itemprop="url">
+                  【译】深入 Apache Flink 可伸缩状态
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-21T22:58:00+08:00">
+                2017-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/" itemprop="url" rel="index">
+                    <span itemprop="name">big-data</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/flink/" itemprop="url" rel="index">
+                    <span itemprop="name">flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/flink_rescalable_state/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="flink_rescalable_state/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。</p>
+<h1 id="有状态的流处理介绍"><a href="#有状态的流处理介绍" class="headerlink" title="有状态的流处理介绍"></a>有状态的流处理介绍</h1><p>我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。</p>
+<p>相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的event的echema是 <code>e = {event_id: int, event_value: int}</code>。我们的目的是：对于每个event取出<code>event_value</code>并流出。我们可以简单用 source-map-sink 的 pipeline 实现，其中map函数从event的提取<code>event_value</code>并且把它发送到下游的sink来输出。这就是个无状态的流处理过程。</p>
+<p>但是，如果我们要求改job使得只输出比之前的<code>event_value</code>大哥<code>event_value</code>呢？在这种情况下我们的map函数显然需要一些方法来机制之前event中的<code>event_value</code>，这就是一种有状态的流处理。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/flink_rescalable_state/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://mtunique.com/scala_parser_combinator/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -984,162 +1152,6 @@ Java对象的存储密度低。一个对象头就8字节，为了对齐有的时
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://mtunique.com/docker_debug/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mtunique">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="MTUNIQUE'S BLOG">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/docker_debug/" itemprop="url">
-                  Docker 调试技巧
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-17T22:30:00+08:00">
-                2016-12-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index">
-                    <span itemprop="name">docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/docker_debug/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="docker_debug/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h3 id="『重用』容器名"><a href="#『重用』容器名" class="headerlink" title="『重用』容器名"></a>『重用』容器名</h3><p>但我们在编写/调试Dockerfile的时候我们经常会重复之前的command，比如这种<code>docker run --name jstorm-zookeeper zookeeper:3.4</code>，然后就容器名就冲突了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ docker run --name jstorm-zookeeper zookeeper:3.4</div><div class="line">...</div><div class="line">$ docker run --name jstorm-zookeeper zookeeper:3.4</div><div class="line">docker: Error response from daemon: Conflict. The name &quot;/jstorm-zookeeper&quot; is already in use by container xxxxxxxxx</div></pre></td></tr></table></figure></p>
-<p>可以在运行 <code>docker run</code> 时候加上<code>--rm</code> flag, 容器将在退出之后销毁。无需手动<code>docker rm CONTAINER</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ docker run --name jstorm-zookeeper zookeeper:3.4 --rm</div><div class="line"></div><div class="line"># reuse </div><div class="line">$ docker create --name jstorm-zookeeper zookeeper:3.4</div><div class="line">$ docker start jstorm-zookeeper</div><div class="line"></div><div class="line"># no error</div></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/docker_debug/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1189,7 +1201,7 @@ Java对象的存储密度低。一个对象头就8字节，为了对齐有的时
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1298,7 +1310,7 @@ Java对象的存储密度低。一个对象头就8字节，为了对齐有的时
         <div class="copyright" >
   
   &copy;  2014 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

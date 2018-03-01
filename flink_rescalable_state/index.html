@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="mtunique" />
+  <meta name="keywords" content="big-data,flink," />
 
 
 
@@ -95,12 +95,22 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="MTUNIQUE'S BLOG">
-<meta property="og:url" content="http://mtunique.com/archives/2014/12/index.html">
+<meta name="description" content="2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。
+有状态的流处理介绍我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。
+相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【译】深入 Apache Flink 可伸缩状态">
+<meta property="og:url" content="http://mtunique.com/flink_rescalable_state/index.html">
 <meta property="og:site_name" content="MTUNIQUE'S BLOG">
+<meta property="og:description" content="2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。
+有状态的流处理介绍我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。
+相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的">
+<meta property="og:updated_time" content="2017-07-28T12:57:18.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MTUNIQUE'S BLOG">
+<meta name="twitter:title" content="【译】深入 Apache Flink 可伸缩状态">
+<meta name="twitter:description" content="2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。
+有状态的流处理介绍我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。
+相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的">
 
 
 
@@ -128,13 +138,13 @@
 
 
 
-  <link rel="canonical" href="http://mtunique.com/archives/2014/12/"/>
+  <link rel="canonical" href="http://mtunique.com/flink_rescalable_state/"/>
 
 
 
 
 
-  <title> 归档 | MTUNIQUE'S BLOG </title>
+  <title> 【译】深入 Apache Flink 可伸缩状态 | MTUNIQUE'S BLOG </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -178,7 +188,7 @@
     
   
 
-  <div class="container sidebar-position-left  page-archive  ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -320,66 +330,208 @@
           <div id="content" class="content">
             
 
-  <section id="posts" class="posts-collapse">
-    <span class="archive-move-on"></span>
+  <div id="posts" class="posts-expand">
+    
 
-    <span class="archive-page-counter">
-      
-      
-      
-        
-      
-      嗯..! 目前共计 14 篇日志。 继续努力。
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://mtunique.com/flink_rescalable_state/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mtunique">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MTUNIQUE'S BLOG">
     </span>
 
     
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【译】深入 Apache Flink 可伸缩状态
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-21T22:58:00+08:00">
+                2017-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/" itemprop="url" rel="index">
+                    <span itemprop="name">big-data</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/big-data/flink/" itemprop="url" rel="index">
+                    <span itemprop="name">flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/flink_rescalable_state/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="flink_rescalable_state/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
-      
 
+      
+        <p>2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。</p>
+<h1 id="有状态的流处理介绍"><a href="#有状态的流处理介绍" class="headerlink" title="有状态的流处理介绍"></a>有状态的流处理介绍</h1><p>我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。</p>
+<p>相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的event的echema是 <code>e = {event_id: int, event_value: int}</code>。我们的目的是：对于每个event取出<code>event_value</code>并流出。我们可以简单用 source-map-sink 的 pipeline 实现，其中map函数从event的提取<code>event_value</code>并且把它发送到下游的sink来输出。这就是个无状态的流处理过程。</p>
+<p>但是，如果我们要求改job使得只输出比之前的<code>event_value</code>大哥<code>event_value</code>呢？在这种情况下我们的map函数显然需要一些方法来机制之前event中的<code>event_value</code>，这就是一种有状态的流处理。<br><a id="more"></a></p>
+<p>这个例子表明状态是在很多有趣的用法中是一个基本的有用的概念。</p>
+<h1 id="Apache-Flink-中的状态"><a href="#Apache-Flink-中的状态" class="headerlink" title="Apache Flink 中的状态"></a>Apache Flink 中的状态</h1><p>Apache Flink 只一个可以进行大规模有状态的流处理分布式系统。对于可伸缩性，Flink 作业在逻辑上分解为一个算子图，并且在物理上每个算子的执行被分解未多个并行的算子事例。在概念上，Flink 中的每个并行算子事例是一个独立的任务，可以被调度到各个集群中的各个机器。</p>
+<p>为了实现高吞吐和低延迟必须最小化任务之间的网络通信。在 Flink 中，用于流处理的网络通信仅发生在作业的算子图中的逻辑边上，从而可以从上游到下游的算子中传输流数据。</p>
+<p>但是，并行事例之间没有通信。为了避免这种网络通信数据局部性是 Flink 的一个关键原则。并且对如何进行状态的存储和访问产生很大影响。</p>
+<p>通过这种设计任务的所有状态数据是本地的，并且状态访问不需要任务之间的网络通信。避免这种流量对于像Flink这种大规模并行分布式系统的可伸缩性至关重要。</p>
+<p>对于 Flink 的有状态流处理我们区分了两种不同类型的状态：operator state 和 keyed state。operator state按算子（subtask）的每个并行事历进行范围划分，keyed state可以被看作是已经被划分或者分片的operator state。每个key只有一个状态分区。我们可以用 operator state 很容易地实现我们之前的例子。</p>
+<h1 id="重新调整有状态的流处理作业"><a href="#重新调整有状态的流处理作业" class="headerlink" title="重新调整有状态的流处理作业"></a>重新调整有状态的流处理作业</h1><p>在状态流处理中改变并行度（即改变算子执行工作的并行子任务的数量）是非常简单的。只需要重启无状态算子的事例就可以，断开或连接上下游算子，如 图1A 所示。</p>
+
+      
+    </div>
+
+    <div>
       
         
-        <div class="collection-title">
-          <h2 class="archive-year motion-element" id="archive-year-2014">2014</h2>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/big-data/" rel="tag"># big-data</a>
+          
+            <a href="/tags/flink/" rel="tag"># flink</a>
+          
         </div>
       
+
+      
+        
       
 
       
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/scala_parser_combinator/" rel="next" title="【译】用 Scala 的Parser Combinator 构建词法和语法分析器">
+                <i class="fa fa-chevron-left"></i> 【译】用 Scala 的Parser Combinator 构建词法和语法分析器
+              </a>
+            
+          </div>
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+          <span class="post-nav-divider"></span>
 
-      <h1 class="post-title">
-        
-            <a class="post-title-link" href="/linux_userspace/" itemprop="url">
-              
-                <span itemprop="name">Linux下用户空间调试工具</span>
-              
-            </a>
-        
-      </h1>
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2014-12-29T17:51:00+08:00"
-              content="2014-12-29" >
-          12-29
-        </time>
-      </div>
-
-    </header>
+      
+      
+    </footer>
   </article>
 
 
 
-    
-
-  </section>
-
-  
-
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -387,6 +539,17 @@
 
 
           
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
 
         </div>
         
@@ -406,8 +569,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.png"
@@ -514,6 +686,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#有状态的流处理介绍"><span class="nav-number">1.</span> <span class="nav-text">有状态的流处理介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Apache-Flink-中的状态"><span class="nav-number">2.</span> <span class="nav-text">Apache Flink 中的状态</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#重新调整有状态的流处理作业"><span class="nav-number">3.</span> <span class="nav-text">重新调整有状态的流处理作业</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -630,11 +818,9 @@
 
 
   
-  
-    <script type="text/javascript" id="motion.page.archive">
-      $('.archive-year').velocity('transition.slideLeftIn');
-    </script>
-  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
 
 
   
@@ -653,6 +839,18 @@
       <script id="dsq-count-scr" src="https://mtunique.disqus.com/count.js" async></script>
     
 
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://mtunique.com/flink_rescalable_state/';
+          this.page.identifier = 'flink_rescalable_state/';
+          this.page.title = '【译】深入 Apache Flink 可伸缩状态';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://mtunique.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
     
 
   

@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://mtunique.com/"/>
-  <updated>2017-04-10T08:22:19.000Z</updated>
+  <updated>2017-07-28T12:57:18.000Z</updated>
   <id>http://mtunique.com/</id>
   
   <author>
@@ -14,6 +14,46 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>【译】深入 Apache Flink 可伸缩状态</title>
+    <link href="http://mtunique.com/flink_rescalable_state/"/>
+    <id>http://mtunique.com/flink_rescalable_state/</id>
+    <published>2017-07-21T14:58:00.000Z</published>
+    <updated>2017-07-28T12:57:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。</p>
+<h1 id="有状态的流处理介绍"><a href="#有状态的流处理介绍" class="headerlink" title="有状态的流处理介绍"></a>有状态的流处理介绍</h1><p>我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。</p>
+<p>相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的event的echema是 <code>e = {event_id: int, event_value: int}</code>。我们的目的是：对于每个event取出<code>event_value</code>并流出。我们可以简单用 source-map-sink 的 pipeline 实现，其中map函数从event的提取<code>event_value</code>并且把它发送到下游的sink来输出。这就是个无状态的流处理过程。</p>
+<p>但是，如果我们要求改job使得只输出比之前的<code>event_value</code>大哥<code>event_value</code>呢？在这种情况下我们的map函数显然需要一些方法来机制之前event中的<code>event_value</code>，这就是一种有状态的流处理。<br><a id="more"></a></p>
+<p>这个例子表明状态是在很多有趣的用法中是一个基本的有用的概念。</p>
+<h1 id="Apache-Flink-中的状态"><a href="#Apache-Flink-中的状态" class="headerlink" title="Apache Flink 中的状态"></a>Apache Flink 中的状态</h1><p>Apache Flink 只一个可以进行大规模有状态的流处理分布式系统。对于可伸缩性，Flink 作业在逻辑上分解为一个算子图，并且在物理上每个算子的执行被分解未多个并行的算子事例。在概念上，Flink 中的每个并行算子事例是一个独立的任务，可以被调度到各个集群中的各个机器。</p>
+<p>为了实现高吞吐和低延迟必须最小化任务之间的网络通信。在 Flink 中，用于流处理的网络通信仅发生在作业的算子图中的逻辑边上，从而可以从上游到下游的算子中传输流数据。</p>
+<p>但是，并行事例之间没有通信。为了避免这种网络通信数据局部性是 Flink 的一个关键原则。并且对如何进行状态的存储和访问产生很大影响。</p>
+<p>通过这种设计任务的所有状态数据是本地的，并且状态访问不需要任务之间的网络通信。避免这种流量对于像Flink这种大规模并行分布式系统的可伸缩性至关重要。</p>
+<p>对于 Flink 的有状态流处理我们区分了两种不同类型的状态：operator state 和 keyed state。operator state按算子（subtask）的每个并行事历进行范围划分，keyed state可以被看作是已经被划分或者分片的operator state。每个key只有一个状态分区。我们可以用 operator state 很容易地实现我们之前的例子。</p>
+<h1 id="重新调整有状态的流处理作业"><a href="#重新调整有状态的流处理作业" class="headerlink" title="重新调整有状态的流处理作业"></a>重新调整有状态的流处理作业</h1><p>在状态流处理中改变并行度（即改变算子执行工作的并行子任务的数量）是非常简单的。只需要重启无状态算子的事例就可以，断开或连接上下游算子，如 图1A 所示。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;2017年2月发布的 Apache Flink 1.2.0 引入了对可伸缩状态的支持。这篇文章将对flink有状态的流处理和可伸缩状态进行详细阐述。&lt;/p&gt;
+&lt;h1 id=&quot;有状态的流处理介绍&quot;&gt;&lt;a href=&quot;#有状态的流处理介绍&quot; class=&quot;headerlink&quot; title=&quot;有状态的流处理介绍&quot;&gt;&lt;/a&gt;有状态的流处理介绍&lt;/h1&gt;&lt;p&gt;我们可以将流处理中的状态看做算子中的一块能记住之前输入数据信息的内存。可以被用来影响之后的输入。&lt;/p&gt;
+&lt;p&gt;相比之下，无状态的算子只考虑他们当前的输入，没有更多上下文和之前的信息。举例一个简单的例子来解释其中的不同：我们考虑一个数据源，发出的event的echema是 &lt;code&gt;e = {event_id: int, event_value: int}&lt;/code&gt;。我们的目的是：对于每个event取出&lt;code&gt;event_value&lt;/code&gt;并流出。我们可以简单用 source-map-sink 的 pipeline 实现，其中map函数从event的提取&lt;code&gt;event_value&lt;/code&gt;并且把它发送到下游的sink来输出。这就是个无状态的流处理过程。&lt;/p&gt;
+&lt;p&gt;但是，如果我们要求改job使得只输出比之前的&lt;code&gt;event_value&lt;/code&gt;大哥&lt;code&gt;event_value&lt;/code&gt;呢？在这种情况下我们的map函数显然需要一些方法来机制之前event中的&lt;code&gt;event_value&lt;/code&gt;，这就是一种有状态的流处理。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="big-data" scheme="http://mtunique.com/categories/big-data/"/>
+    
+      <category term="flink" scheme="http://mtunique.com/categories/big-data/flink/"/>
+    
+    
+      <category term="big-data" scheme="http://mtunique.com/tags/big-data/"/>
+    
+      <category term="flink" scheme="http://mtunique.com/tags/flink/"/>
+    
+  </entry>
   
   <entry>
     <title>【译】用 Scala 的Parser Combinator 构建词法和语法分析器</title>
@@ -248,7 +288,7 @@
     <link href="http://mtunique.com/spark_flink_mem/"/>
     <id>http://mtunique.com/spark_flink_mem/</id>
     <published>2016-12-24T03:30:00.000Z</published>
-    <updated>2017-03-21T14:37:48.000Z</updated>
+    <updated>2017-09-15T14:23:53.000Z</updated>
     
     <content type="html"><![CDATA[<h1 id="为什么要做内存管理"><a href="#为什么要做内存管理" class="headerlink" title="为什么要做内存管理"></a>为什么要做内存管理</h1><p>最近几年存储和网络硬件的升级对大数据领域相关的系统性能提升很大，在很多场景中CPU和内存的渐渐成为瓶颈。<br>然而大数据领域很多开源框架都使用JVM。相对 c/c++ JVM系语言对于CPU和内存的利用还是差很多的，主要体现在:</p>
 <ul>
@@ -1151,6 +1191,39 @@
   </entry>
   
   <entry>
+    <title>【Tornado笔记】tornado.web.IOLoop和tornado.util.Configurable</title>
+    <link href="http://mtunique.com/tornado_ioloop/"/>
+    <id>http://mtunique.com/tornado_ioloop/</id>
+    <published>2014-11-28T05:30:00.000Z</published>
+    <updated>2017-01-07T11:58:00.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="https://www.mtunique.com/tornado_application.html" target="_blank" rel="external">上一篇文章</a>tornado的 Hello,<br>world 还没有分析完 还差最后一句</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> tornado.ioloop</div><div class="line"><span class="keyword">import</span> tornado.web</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainHandler</span><span class="params">(tornado.web.RequestHandler)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">(self)</span>:</span></div><div class="line">        self.write(<span class="string">"Hello, world"</span>)</div><div class="line"></div><div class="line">application = tornado.web.Application([</div><div class="line">    (<span class="string">r"/"</span>, MainHandler),</div><div class="line">])</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</div><div class="line">    application.listen(<span class="number">8888</span>)</div><div class="line">    tornado.ioloop.IOLoop.instance().start()</div></pre></td></tr></table></figure>
+<p>IOLoop就是整个tornado区别于其他框架的最关键的地方。</p>
+<a id="more"></a>
+<h4 id="一、tornado-ioloop-IOLoop-instance"><a href="#一、tornado-ioloop-IOLoop-instance" class="headerlink" title="一、tornado.ioloop.IOLoop.instance"></a>一、<code>tornado.ioloop.IOLoop.instance</code></h4><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@staticmethod</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">instance</span><span class="params">()</span>:</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> hasattr(IOLoop, <span class="string">"_instance"</span>):</div><div class="line">        <span class="keyword">with</span> IOLoop._instance_lock:</div><div class="line">            <span class="keyword">if</span> <span class="keyword">not</span> hasattr(IOLoop, <span class="string">"_instance"</span>):</div><div class="line">                <span class="comment"># New instance after double check</span></div><div class="line">                IOLoop._instance = IOLoop()</div><div class="line">    <span class="keyword">return</span> IOLoop._instance</div></pre></td></tr></table></figure>
+<p>每个tornado进程都会有一个全局的<code>IOLoop</code>实例，这个方法就是用来获得这个实例的。</p>
+<p><code>with IOLoop._instance_lock</code>保证了创建的这个实例的过程是线程安全的。</p>
+<p><code>IOLoop</code>继承了<code>tornado.util.Configurable</code>。<code>Configurable</code><br>（是一个“抽象”类）实现了<code>__new__</code>，所以将自动调用了<code>__new__</code>生成<code>IOLoop</code>的实例。</p>
+<h4 id="二、tornado-util-Configurable-new"><a href="#二、tornado-util-Configurable-new" class="headerlink" title="二、tornado.util.Configurable.__new__()"></a>二、<code>tornado.util.Configurable.__new__()</code></h4><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">def __new__(cls, **kwargs):</div><div class="line">    base = cls.configurable_base()</div><div class="line">    args = &#123;&#125;</div><div class="line">    if cls is base:</div><div class="line">        impl = cls.configured_class()</div><div class="line">        if base.__impl_kwargs:</div><div class="line">            args.update(base.__impl_kwargs)</div><div class="line">    else:</div><div class="line">        impl = cls</div><div class="line">    args.update(kwargs)</div><div class="line">    instance = super(Configurable, cls).__new__(impl)</div><div class="line">    # initialize vs __init__ chosen for compatibility with AsyncHTTPClient</div><div class="line">    # singleton magic.  If we get rid of that we can switch to __init__</div><div class="line">    # here too.</div><div class="line">    instance.initialize(**args)</div><div class="line">    return instance&lt;/pre&gt;&lt;/div&gt;</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;a href=&quot;https://www.mtunique.com/tornado_application.html&quot;&gt;上一篇文章&lt;/a&gt;tornado的 Hello,&lt;br&gt;world 还没有分析完 还差最后一句&lt;/p&gt;
+&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; tornado.ioloop&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; tornado.web&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;MainHandler&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(tornado.web.RequestHandler)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        self.write(&lt;span class=&quot;string&quot;&gt;&quot;Hello, world&quot;&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;application = tornado.web.Application([&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    (&lt;span class=&quot;string&quot;&gt;r&quot;/&quot;&lt;/span&gt;, MainHandler),&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;])&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; __name__ == &lt;span class=&quot;string&quot;&gt;&quot;__main__&quot;&lt;/span&gt;:&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    application.listen(&lt;span class=&quot;number&quot;&gt;8888&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    tornado.ioloop.IOLoop.instance().start()&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;IOLoop就是整个tornado区别于其他框架的最关键的地方。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="python" scheme="http://mtunique.com/categories/python/"/>
+    
+    
+      <category term="python" scheme="http://mtunique.com/tags/python/"/>
+    
+  </entry>
+  
+  <entry>
     <title>【Tornado笔记】tornado.web.Application</title>
     <link href="http://mtunique.com/tornado_application/"/>
     <id>http://mtunique.com/tornado_application/</id>
@@ -1197,39 +1270,6 @@
       &lt;p&gt;从tornado的 Hello,world 开始分析tornado的源码&lt;/p&gt;
 &lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; tornado.ioloop&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; tornado.web&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;MainHandler&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(tornado.web.RequestHandler)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        self.write(&lt;span class=&quot;string&quot;&gt;&quot;Hello, world&quot;&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;application = tornado.web.Application([&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    (&lt;span class=&quot;string&quot;&gt;r&quot;/&quot;&lt;/span&gt;, MainHandler),&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;])&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; __name__ == &lt;span class=&quot;string&quot;&gt;&quot;__main__&quot;&lt;/span&gt;:&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    application.listen(&lt;span class=&quot;number&quot;&gt;8888&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    tornado.ioloop.IOLoop.instance().start()&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
 &lt;p&gt;很容易可以看出，通过继承&lt;code&gt;RequestHandler&lt;/code&gt;类定义自己的处理类，来处理请求。&lt;code&gt;Application&lt;/code&gt;类的对象来处理URI的路由（将URI&lt;code&gt;r&amp;quot;/&amp;quot;&lt;/code&gt;于处理类&lt;code&gt;MainHandler&lt;/code&gt;组成tuple，关联起来）。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="python" scheme="http://mtunique.com/categories/python/"/>
-    
-    
-      <category term="python" scheme="http://mtunique.com/tags/python/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【Tornado笔记】tornado.web.IOLoop和tornado.util.Configurable</title>
-    <link href="http://mtunique.com/tornado_ioloop/"/>
-    <id>http://mtunique.com/tornado_ioloop/</id>
-    <published>2014-11-28T05:30:00.000Z</published>
-    <updated>2017-01-07T11:58:00.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><a href="https://www.mtunique.com/tornado_application.html" target="_blank" rel="external">上一篇文章</a>tornado的 Hello,<br>world 还没有分析完 还差最后一句</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> tornado.ioloop</div><div class="line"><span class="keyword">import</span> tornado.web</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainHandler</span><span class="params">(tornado.web.RequestHandler)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">(self)</span>:</span></div><div class="line">        self.write(<span class="string">"Hello, world"</span>)</div><div class="line"></div><div class="line">application = tornado.web.Application([</div><div class="line">    (<span class="string">r"/"</span>, MainHandler),</div><div class="line">])</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</div><div class="line">    application.listen(<span class="number">8888</span>)</div><div class="line">    tornado.ioloop.IOLoop.instance().start()</div></pre></td></tr></table></figure>
-<p>IOLoop就是整个tornado区别于其他框架的最关键的地方。</p>
-<a id="more"></a>
-<h4 id="一、tornado-ioloop-IOLoop-instance"><a href="#一、tornado-ioloop-IOLoop-instance" class="headerlink" title="一、tornado.ioloop.IOLoop.instance"></a>一、<code>tornado.ioloop.IOLoop.instance</code></h4><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@staticmethod</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">instance</span><span class="params">()</span>:</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> hasattr(IOLoop, <span class="string">"_instance"</span>):</div><div class="line">        <span class="keyword">with</span> IOLoop._instance_lock:</div><div class="line">            <span class="keyword">if</span> <span class="keyword">not</span> hasattr(IOLoop, <span class="string">"_instance"</span>):</div><div class="line">                <span class="comment"># New instance after double check</span></div><div class="line">                IOLoop._instance = IOLoop()</div><div class="line">    <span class="keyword">return</span> IOLoop._instance</div></pre></td></tr></table></figure>
-<p>每个tornado进程都会有一个全局的<code>IOLoop</code>实例，这个方法就是用来获得这个实例的。</p>
-<p><code>with IOLoop._instance_lock</code>保证了创建的这个实例的过程是线程安全的。</p>
-<p><code>IOLoop</code>继承了<code>tornado.util.Configurable</code>。<code>Configurable</code><br>（是一个“抽象”类）实现了<code>__new__</code>，所以将自动调用了<code>__new__</code>生成<code>IOLoop</code>的实例。</p>
-<h4 id="二、tornado-util-Configurable-new"><a href="#二、tornado-util-Configurable-new" class="headerlink" title="二、tornado.util.Configurable.__new__()"></a>二、<code>tornado.util.Configurable.__new__()</code></h4><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">def __new__(cls, **kwargs):</div><div class="line">    base = cls.configurable_base()</div><div class="line">    args = &#123;&#125;</div><div class="line">    if cls is base:</div><div class="line">        impl = cls.configured_class()</div><div class="line">        if base.__impl_kwargs:</div><div class="line">            args.update(base.__impl_kwargs)</div><div class="line">    else:</div><div class="line">        impl = cls</div><div class="line">    args.update(kwargs)</div><div class="line">    instance = super(Configurable, cls).__new__(impl)</div><div class="line">    # initialize vs __init__ chosen for compatibility with AsyncHTTPClient</div><div class="line">    # singleton magic.  If we get rid of that we can switch to __init__</div><div class="line">    # here too.</div><div class="line">    instance.initialize(**args)</div><div class="line">    return instance&lt;/pre&gt;&lt;/div&gt;</div></pre></td></tr></table></figure>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;&lt;a href=&quot;https://www.mtunique.com/tornado_application.html&quot;&gt;上一篇文章&lt;/a&gt;tornado的 Hello,&lt;br&gt;world 还没有分析完 还差最后一句&lt;/p&gt;
-&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; tornado.ioloop&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; tornado.web&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;MainHandler&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(tornado.web.RequestHandler)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        self.write(&lt;span class=&quot;string&quot;&gt;&quot;Hello, world&quot;&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;application = tornado.web.Application([&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    (&lt;span class=&quot;string&quot;&gt;r&quot;/&quot;&lt;/span&gt;, MainHandler),&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;])&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; __name__ == &lt;span class=&quot;string&quot;&gt;&quot;__main__&quot;&lt;/span&gt;:&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    application.listen(&lt;span class=&quot;number&quot;&gt;8888&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    tornado.ioloop.IOLoop.instance().start()&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;IOLoop就是整个tornado区别于其他框架的最关键的地方。&lt;/p&gt;
     
     </summary>
     
