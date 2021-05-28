@@ -55,9 +55,7 @@ driver部分主要是对SparkContext进行配置、初始化以及关闭。初�
 Spark应用程序的executor部分是对数据的处理，数据分三种：
 
 #### 原生数据
-{% blockquote %}
 包含输入的数据和输出的数据。
-{% endblockquote %}
 
 ##### 输入原生数据
 
@@ -71,9 +69,7 @@ Spark应用程序的executor部分是对数据的处理，数据分三种：
 3.  生成hadoop数据集，如saveAsTextFile、saveAsSequenceFile
 
 #### RDD(Resilient Distributed Datasets)
-{% blockquote %}
 是一个容错的、并行的数据结构，可以让用户显式地将数据存储到磁盘和内存中，并能控制数据的分区。同时，RDD还提供了一组丰富的操作来操作这些数据。在这些操作中，诸如map、flatMap、filter等转换操作实现了monad模式，很好地契合了Scala的集合操作。除此之外，RDD还提供了诸如join、groupBy、reduceByKey等更为方便的操作（注意，reduceByKey是action，而非transformation），以支持常见的数据运算。 RDD作为数据结构，本质上是一个只读的分区记录集合。一个RDD可以包含多个分区，每个分区就是一个dataset片段。RDD可以相互依赖。如果RDD的每个分区最多只能被一个Child RDD的一个分区使用，则称之为narrow dependency；若多个Child RDD分区都可以依赖，则称之为wide dependency。不同的操作依据其特性，可能会产生不同的依赖。例如map操作会产生narrow dependency，而join操作则产生wide dependency。
-{% endblockquote %}
 
 ##### 主要部分组成
 
