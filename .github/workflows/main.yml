@@ -20,6 +20,9 @@ jobs:
         with:
           hugo-version: '0.83.1'
 
+      - name: Cp icon
+        run: cp ./static/favicon.ico ./themes/cactus/static/images/favicon.ico
+
       - name: Build
         run: hugo --minify
 
