@@ -1,5 +1,5 @@
 ---
-title: 【未完成】spark和flink的内存管理简单介绍和对比
+title: spark和flink的内存管理简单介绍和对比
 date: 2016-12-24T11:30:27+08:00
 categories:
 - big-data
