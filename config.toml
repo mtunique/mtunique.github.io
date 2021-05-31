@@ -4,7 +4,7 @@ title = "mtunique blog"
 theme = "cactus"
 copyright = "mtunique" # cactus will use title if copyright is not set
 disqusShortname = "mtunique" # Used when comments is enabled. Cactus will use site title if not set
-# googleAnalytics = "UA-1234-5"
+googleAnalytics = "UA-65601165-1"
 
 
 # summaryLength = 2
@@ -55,8 +55,8 @@ weight = 4
   dateFormat = "2006-01-02" # default
 
   # Post page settings
-  show_updated = false # default
-  showReadTime = false # default
+  show_updated = true # default
+  showReadTime = true # default
 
   [params.comments]
     enabled = true# default
