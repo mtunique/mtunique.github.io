@@ -1,6 +1,6 @@
 ---
 title: python实现各基本数据结构（1）——离散和线性
-date: 2016-1-27T14:30:27+08:00
+date: 2016-01-27T14:30:27+08:00
 category: python
 tags:
 - python

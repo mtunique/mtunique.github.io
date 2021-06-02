@@ -1,6 +1,6 @@
 ---
 title: 怎样利用Spark Streaming和Hadoop实现近实时的会话连接
-date: 2015-1-6 10:20
+date: 2015-01-06T10:20:27+08:00
 category:
 - big-data
 - spark
