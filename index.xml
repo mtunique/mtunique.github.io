@@ -29,7 +29,7 @@ Apache Spark 正在快速发展，包括更改和添加核心API。最具破坏�
 这篇文章将提供每个API的概述，并且总结了每个的优缺点。 配套的github repo提供了例子，可以从这开始实验文中提到的方法。yd
 RDD (弹性分布式数据集) API 从 1.0 开始一直存在 Spark 中。 这个接口和 Java 版本 JavaRDD 对于已经完成标准Spark教程的任何开发人员来说都是熟悉的。从开发人员的角度来看，RDD只是一组表示数据的Java或Scala对象。
 RDD API 提供很多转换方法来在数据上执行计算，比如 map() ， filter() ，和 reduce() 。这些方法的结果表示转换后的新RDD。 然而，这些方法只是定义要执行的操作，直到调用action方法才执行转换。action 方法比如是： collect() 和 saveAsObjectFile().
-RDD 转换和action例子 Scala: rdd.</description></item><item><title>另一个Lambda表达式教程</title><link>https://mtunique.com/posts/lambda_python/</link><pubDate>Sat, 24 Jan 2015 14:30:00 +0800</pubDate><guid>https://mtunique.com/posts/lambda_python/</guid><description>有很多Python的lambda教程[1]。最近我偶然发现一个，真挺有用的。是Mike Driscoll在Mouse VS Python 博客上的关于lambda的讨论) 。
+RDD 转换和action例子 Scala: rdd.</description></item><item><title>python实现各基本数据结构（1）——离散和线性</title><link>https://mtunique.com/posts/python_datastruct/</link><pubDate>Wed, 27 Jan 2016 14:30:27 +0800</pubDate><guid>https://mtunique.com/posts/python_datastruct/</guid><description>离散 集合（set） Operation Average case Worst Case notes x in s O(1) O(n) Union s t O(len(s)+len(t)) Intersection s&amp;amp;t O(min(len(s), len(t)) O(len(s) * len(t)) replace &amp;ldquo;min&amp;rdquo; with &amp;ldquo;max&amp;rdquo; if t is not a set Multiple intersection s1&amp;amp;s2&amp;amp;..&amp;amp;sn (n-1)*O(l) where l is max(len(s1),..,len(sn)) Difference s-t O(len(s)) s.difference_update(t) O(len(t)) Symmetric Difference s^t O(len(s)) O(len(s) * len(t)) s.</description></item><item><title>另一个Lambda表达式教程</title><link>https://mtunique.com/posts/lambda_python/</link><pubDate>Sat, 24 Jan 2015 14:30:00 +0800</pubDate><guid>https://mtunique.com/posts/lambda_python/</guid><description>有很多Python的lambda教程[1]。最近我偶然发现一个，真挺有用的。是Mike Driscoll在Mouse VS Python 博客上的关于lambda的讨论) 。
 当我刚开始学习Python，最容易困惑的概念之一，是lambda语句。我敢肯定， 其他新的程序员也对它很困惑... Mike的讨论非常好：清晰，直接，且含有实用的示例。它帮助我终于领会了lambda，并导致我写的另一篇lambda教程。
 一个用来构造函数的工具 基本上，Python的lambda是用于构造函数（或更精确地说，函数对象）的工具。这意味着，Python有两个构造函数的工具：def和lambda。
 下面是一个例子。您可以以正常的方式用def构造一个函数，就像这样：
@@ -39,7 +39,16 @@ sum = lambda x, y: x + y # def sum(x,y): return x + y out = lambda *x: sys.stdou
 答案是： 我们并不需要lambda，我们不用它一样可以做所有的事情。但是… 在特定的情况下，很是方便 - 它让编写代码更容易一些，而且编写的代码更整洁。
 什么样的情况？ 好，其中一个情况是，我们需要一个简单的一次性功能：将被只使用一次函数。
 通常，写函数有两个目的：(a)以减少代码重复（b）模块化代码。
-如果你的应用程序在不同的地方包含重复的代码块，那么你就可以把代码拷贝到一个函数，给函数名，然后 – 使用该函数名 - 在代码中的不同位置调用它。 如果你有一个代码块执行一个明确的操作 - 但真的是冗长、粗糙、破坏程序的可读性，那么你可以把那么长的粗糙的所有代码变成一个函数。 但是，假设你需要创建一个函数，将只被使用一次 - 只从应用程序中的一个地方调用。好吧，首先，你不需要给函数的名称。它可以是“匿名的”。而且你可以把它定义在你想使用它的地方。这就是lambda是非常有用的时候。</description></item><item><title>Linux下用户空间调试工具</title><link>https://mtunique.com/posts/linux_userspace/</link><pubDate>Mon, 29 Dec 2014 17:51:27 +0800</pubDate><guid>https://mtunique.com/posts/linux_userspace/</guid><description>根据定义，调试工具是那些那些使我们能够监测、控制和纠正其他程序的程序。我们为什么应该用调试工具呢? 在有些情况下，运行一些程序的时候我们会被卡住，我们需要明白究竟发生了什么。 例如, 我们正在运行应用程序，它产生了一些错误消息。要修复这些错误，我们应该先找出为什么产生这些错误的消息和这些错误消息从哪里产生的。 一个应用程序可能突然挂起，我们必须了解其他什么进程同时在运行。我们可能还必须弄清楚进程x挂起的时候在做什么。为了剖析这些细节， 我们需要调试工具的帮助。有几个Linux下的用户空间调试工具和技术，他们用来分析用户空间问题相当有用。他们是:
+如果你的应用程序在不同的地方包含重复的代码块，那么你就可以把代码拷贝到一个函数，给函数名，然后 – 使用该函数名 - 在代码中的不同位置调用它。 如果你有一个代码块执行一个明确的操作 - 但真的是冗长、粗糙、破坏程序的可读性，那么你可以把那么长的粗糙的所有代码变成一个函数。 但是，假设你需要创建一个函数，将只被使用一次 - 只从应用程序中的一个地方调用。好吧，首先，你不需要给函数的名称。它可以是“匿名的”。而且你可以把它定义在你想使用它的地方。这就是lambda是非常有用的时候。</description></item><item><title>怎样利用Spark Streaming和Hadoop实现近实时的会话连接</title><link>https://mtunique.com/posts/spark_streaming_session/</link><pubDate>Tue, 06 Jan 2015 10:20:27 +0800</pubDate><guid>https://mtunique.com/posts/spark_streaming_session/</guid><description>这个 Spark Streaming 样例是一个可持久化到Hadoop近实时会话的很好的例子。
+Spark Streaming 是Apache Spark 中最有趣的组件之一。你用Spark Streaming可以创建数据管道来用批量加载数据一样的API处理流式数据。此外，Spark Steaming的“micro-batching”方式提供相当好的弹性来应对一些原因造成的任务失败。
+在这篇文章中，我将通过网站的事件近实时回话的例子演示使你熟悉一些常见的和高级的Spark Streaming功能，然后加载活动有关的统计数据到Apache HBase，用不喜欢的BI用具来绘图分析。 (Sessionization指的是捕获的单一访问者的网站会话时间范围内所有点击流活动。)你可以在这里找到了这个演示的代码。
+像这样的系统对于了解访问者的行为（无论是人还是机器）是超级有用的。通过一些额外的工作它也可以被设计成windowing模式来以异步方式检测可能的欺诈。
+Spark Streaming 代码
+我们的例子中的main class是：
+com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData
+让我们来看看这段代码段（忽略1-59行，其中包含imports 和其他无聊的东西）。
+60到112行：设置Spark Streaming 这些行是非常基本的，用来设置的Spark Streaming，同时可以选择从HDFS或socket接收数据流。如果你在Spark Streaming方面是一个新手，我已经添加了一些详细的注释帮助理解代码。 （我不打算在这里详谈，因为仍然在样例代码里。）
+//This is just creating a Spark Config object. I don&amp;#39;t do much here but //add the app name. There are tons of options to put into the Spark config, //but none are needed for this simple example. val sparkConf = new SparkConf().</description></item><item><title>Linux下用户空间调试工具</title><link>https://mtunique.com/posts/linux_userspace/</link><pubDate>Mon, 29 Dec 2014 17:51:27 +0800</pubDate><guid>https://mtunique.com/posts/linux_userspace/</guid><description>根据定义，调试工具是那些那些使我们能够监测、控制和纠正其他程序的程序。我们为什么应该用调试工具呢? 在有些情况下，运行一些程序的时候我们会被卡住，我们需要明白究竟发生了什么。 例如, 我们正在运行应用程序，它产生了一些错误消息。要修复这些错误，我们应该先找出为什么产生这些错误的消息和这些错误消息从哪里产生的。 一个应用程序可能突然挂起，我们必须了解其他什么进程同时在运行。我们可能还必须弄清楚进程x挂起的时候在做什么。为了剖析这些细节， 我们需要调试工具的帮助。有几个Linux下的用户空间调试工具和技术，他们用来分析用户空间问题相当有用。他们是:
 print语句 查询 (/proc, /sys etc) 跟踪 (strace/ltrace) Valgrind (memwatch) GDB 让我们一个个地了解。
 1.print语句 这是一个基本的原始的调试问题的方法。 我们可以在程序中插入print语句来了解控制流和变量值。 虽然这是一个简单的技术, 但它有一些缺点的。 程序需要进行编辑以添加print语句，然后不得不重新编译，重新运行来获得输出。 如果要调试的程序相当大，这是一个耗时的方法。
 2. 查询 在某些情况下，我们需要弄清楚在一个运行在内核中的进程的状态和内存映射。为了获得这些信息，我们不需要在内核中插入任何代码。 相反，可以用 /proc 文件系统。
@@ -74,13 +83,4 @@ import tornado.ioloop import tornado.web class MainHandler(tornado.web.RequestHa
 一、tornado.ioloop.IOLoop.instance @staticmethod def instance(): if not hasattr(IOLoop, &amp;#34;_instance&amp;#34;): with IOLoop._instance_lock: if not hasattr(IOLoop, &amp;#34;_instance&amp;#34;): # New instance after double check IOLoop._instance = IOLoop() return IOLoop._instance 每个tornado进程都会有一个全局的IOLoop实例，这个方法就是用来获得这个实例的。
 with IOLoop._instance_lock保证了创建的这个实例的过程是线程安全的。
 IOLoop继承了tornado.util.Configurable。Configurable （是一个“抽象”类）实现了__new__，所以将自动调用了__new__生成IOLoop的实例。
-二、tornado.util.Configurable.__new__() def __new__(cls, **kwargs): base = cls.configurable_base() args = {} if cls is base: impl = cls.</description></item><item><title>python实现各基本数据结构（1）——离散和线性</title><link>https://mtunique.com/posts/python_datastruct/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://mtunique.com/posts/python_datastruct/</guid><description>离散 集合（set） Operation Average case Worst Case notes x in s O(1) O(n) Union s t O(len(s)+len(t)) Intersection s&amp;amp;t O(min(len(s), len(t)) O(len(s) * len(t)) replace &amp;ldquo;min&amp;rdquo; with &amp;ldquo;max&amp;rdquo; if t is not a set Multiple intersection s1&amp;amp;s2&amp;amp;..&amp;amp;sn (n-1)*O(l) where l is max(len(s1),..,len(sn)) Difference s-t O(len(s)) s.difference_update(t) O(len(t)) Symmetric Difference s^t O(len(s)) O(len(s) * len(t)) s.</description></item><item><title>怎样利用Spark Streaming和Hadoop实现近实时的会话连接</title><link>https://mtunique.com/posts/spark_streaming_session/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://mtunique.com/posts/spark_streaming_session/</guid><description>这个 Spark Streaming 样例是一个可持久化到Hadoop近实时会话的很好的例子。
-Spark Streaming 是Apache Spark 中最有趣的组件之一。你用Spark Streaming可以创建数据管道来用批量加载数据一样的API处理流式数据。此外，Spark Steaming的“micro-batching”方式提供相当好的弹性来应对一些原因造成的任务失败。
-在这篇文章中，我将通过网站的事件近实时回话的例子演示使你熟悉一些常见的和高级的Spark Streaming功能，然后加载活动有关的统计数据到Apache HBase，用不喜欢的BI用具来绘图分析。 (Sessionization指的是捕获的单一访问者的网站会话时间范围内所有点击流活动。)你可以在这里找到了这个演示的代码。
-像这样的系统对于了解访问者的行为（无论是人还是机器）是超级有用的。通过一些额外的工作它也可以被设计成windowing模式来以异步方式检测可能的欺诈。
-Spark Streaming 代码
-我们的例子中的main class是：
-com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData
-让我们来看看这段代码段（忽略1-59行，其中包含imports 和其他无聊的东西）。
-60到112行：设置Spark Streaming 这些行是非常基本的，用来设置的Spark Streaming，同时可以选择从HDFS或socket接收数据流。如果你在Spark Streaming方面是一个新手，我已经添加了一些详细的注释帮助理解代码。 （我不打算在这里详谈，因为仍然在样例代码里。）
-//This is just creating a Spark Config object. I don&amp;#39;t do much here but //add the app name. There are tons of options to put into the Spark config, //but none are needed for this simple example. val sparkConf = new SparkConf().</description></item></channel></rss>
+二、tornado.util.Configurable.__new__() def __new__(cls, **kwargs): base = cls.configurable_base() args = {} if cls is base: impl = cls.</description></item></channel></rss>

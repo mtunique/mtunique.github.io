@@ -26,7 +26,16 @@ Apache Spark 正在快速发展，包括更改和添加核心API。最具破坏�
 这篇文章将提供每个API的概述，并且总结了每个的优缺点。 配套的github repo提供了例子，可以从这开始实验文中提到的方法。yd
 RDD (弹性分布式数据集) API 从 1.0 开始一直存在 Spark 中。 这个接口和 Java 版本 JavaRDD 对于已经完成标准Spark教程的任何开发人员来说都是熟悉的。从开发人员的角度来看，RDD只是一组表示数据的Java或Scala对象。
 RDD API 提供很多转换方法来在数据上执行计算，比如 map() ， filter() ，和 reduce() 。这些方法的结果表示转换后的新RDD。 然而，这些方法只是定义要执行的操作，直到调用action方法才执行转换。action 方法比如是： collect() 和 saveAsObjectFile().
-RDD 转换和action例子 Scala: rdd.</description></item><item><title>【Spark笔记】基本概念</title><link>https://mtunique.com/posts/spark_base/</link><pubDate>Fri, 28 Nov 2014 13:30:27 +0800</pubDate><guid>https://mtunique.com/posts/spark_base/</guid><description>代码量 Spark: 20,000 LOC
+RDD 转换和action例子 Scala: rdd.</description></item><item><title>怎样利用Spark Streaming和Hadoop实现近实时的会话连接</title><link>https://mtunique.com/posts/spark_streaming_session/</link><pubDate>Tue, 06 Jan 2015 10:20:27 +0800</pubDate><guid>https://mtunique.com/posts/spark_streaming_session/</guid><description>这个 Spark Streaming 样例是一个可持久化到Hadoop近实时会话的很好的例子。
+Spark Streaming 是Apache Spark 中最有趣的组件之一。你用Spark Streaming可以创建数据管道来用批量加载数据一样的API处理流式数据。此外，Spark Steaming的“micro-batching”方式提供相当好的弹性来应对一些原因造成的任务失败。
+在这篇文章中，我将通过网站的事件近实时回话的例子演示使你熟悉一些常见的和高级的Spark Streaming功能，然后加载活动有关的统计数据到Apache HBase，用不喜欢的BI用具来绘图分析。 (Sessionization指的是捕获的单一访问者的网站会话时间范围内所有点击流活动。)你可以在这里找到了这个演示的代码。
+像这样的系统对于了解访问者的行为（无论是人还是机器）是超级有用的。通过一些额外的工作它也可以被设计成windowing模式来以异步方式检测可能的欺诈。
+Spark Streaming 代码
+我们的例子中的main class是：
+com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData
+让我们来看看这段代码段（忽略1-59行，其中包含imports 和其他无聊的东西）。
+60到112行：设置Spark Streaming 这些行是非常基本的，用来设置的Spark Streaming，同时可以选择从HDFS或socket接收数据流。如果你在Spark Streaming方面是一个新手，我已经添加了一些详细的注释帮助理解代码。 （我不打算在这里详谈，因为仍然在样例代码里。）
+//This is just creating a Spark Config object. I don&amp;#39;t do much here but //add the app name. There are tons of options to put into the Spark config, //but none are needed for this simple example. val sparkConf = new SparkConf().</description></item><item><title>【Spark笔记】基本概念</title><link>https://mtunique.com/posts/spark_base/</link><pubDate>Fri, 28 Nov 2014 13:30:27 +0800</pubDate><guid>https://mtunique.com/posts/spark_base/</guid><description>代码量 Spark: 20,000 LOC
 Hadoop 1.0: 90,000 LOC
 Hadoop 2.0: 220,000 LOC
 基本概念 RDD - resillient distributed dataset 弹性分布式数据集
@@ -43,13 +52,4 @@ Caching Managenment - 缓存管理，对RDD的中间计算结果进行缓存管
 A：driver部分 driver部分主要是对SparkContext进行配置、初始化以及关闭。初始化SparkContext是为了构建Spark应用程序的运行环境，在初始化SparkContext，要先导入一些Spark的类和隐式转换；在executor部分运行完毕后，需要将SparkContext关闭。
 B：executor部分 Spark应用程序的executor部分是对数据的处理，数据分三种：
 原生数据 包含输入的数据和输出的数据。
-输入原生数据 scala集合数据集，如Array(1,2,3,4,5)，Spark使用parallelize方法转换成RDD。 hadoop数据集，Spark支持存储在hadoop上的文件和hadoop支持的其他文件系统，如本地文件、HBase、SequenceFile和Hadoop的输入格式。例如Spark使用txtFile方法可以将本地文件或HDFS文件转换成RDD. 输出数据 生成Scala标量数据，如count（返回RDD中元素的个数）、reduce、fold/aggregate；返回几个标量，如take（返回前几个元素）。 生成Scala集合数据集，如collect（把RDD中的所有元素倒入 Scala集合类型）、lookup（查找对应key的所有值）。 生成hadoop数据集，如saveAsTextFile、saveAsSequenceFile RDD(Resilient Distributed Datasets) 是一个容错的、并行的数据结构，可以让用户显式地将数据存储到磁盘和内存中，并能控制数据的分区。同时，RDD还提供了一组丰富的操作来操作这些数据。在这些操作中，诸如map、flatMap、filter等转换操作实现了monad模式，很好地契合了Scala的集合操作。除此之外，RDD还提供了诸如join、groupBy、reduceByKey等更为方便的操作（注意，reduceByKey是action，而非transformation），以支持常见的数据运算。 RDD作为数据结构，本质上是一个只读的分区记录集合。一个RDD可以包含多个分区，每个分区就是一个dataset片段。RDD可以相互依赖。如果RDD的每个分区最多只能被一个Child RDD的一个分区使用，则称之为narrow dependency；若多个Child RDD分区都可以依赖，则称之为wide dependency。不同的操作依据其特性，可能会产生不同的依赖。例如map操作会产生narrow dependency，而join操作则产生wide dependency。</description></item><item><title>怎样利用Spark Streaming和Hadoop实现近实时的会话连接</title><link>https://mtunique.com/posts/spark_streaming_session/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://mtunique.com/posts/spark_streaming_session/</guid><description>这个 Spark Streaming 样例是一个可持久化到Hadoop近实时会话的很好的例子。
-Spark Streaming 是Apache Spark 中最有趣的组件之一。你用Spark Streaming可以创建数据管道来用批量加载数据一样的API处理流式数据。此外，Spark Steaming的“micro-batching”方式提供相当好的弹性来应对一些原因造成的任务失败。
-在这篇文章中，我将通过网站的事件近实时回话的例子演示使你熟悉一些常见的和高级的Spark Streaming功能，然后加载活动有关的统计数据到Apache HBase，用不喜欢的BI用具来绘图分析。 (Sessionization指的是捕获的单一访问者的网站会话时间范围内所有点击流活动。)你可以在这里找到了这个演示的代码。
-像这样的系统对于了解访问者的行为（无论是人还是机器）是超级有用的。通过一些额外的工作它也可以被设计成windowing模式来以异步方式检测可能的欺诈。
-Spark Streaming 代码
-我们的例子中的main class是：
-com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData
-让我们来看看这段代码段（忽略1-59行，其中包含imports 和其他无聊的东西）。
-60到112行：设置Spark Streaming 这些行是非常基本的，用来设置的Spark Streaming，同时可以选择从HDFS或socket接收数据流。如果你在Spark Streaming方面是一个新手，我已经添加了一些详细的注释帮助理解代码。 （我不打算在这里详谈，因为仍然在样例代码里。）
-//This is just creating a Spark Config object. I don&amp;#39;t do much here but //add the app name. There are tons of options to put into the Spark config, //but none are needed for this simple example. val sparkConf = new SparkConf().</description></item></channel></rss>
+输入原生数据 scala集合数据集，如Array(1,2,3,4,5)，Spark使用parallelize方法转换成RDD。 hadoop数据集，Spark支持存储在hadoop上的文件和hadoop支持的其他文件系统，如本地文件、HBase、SequenceFile和Hadoop的输入格式。例如Spark使用txtFile方法可以将本地文件或HDFS文件转换成RDD. 输出数据 生成Scala标量数据，如count（返回RDD中元素的个数）、reduce、fold/aggregate；返回几个标量，如take（返回前几个元素）。 生成Scala集合数据集，如collect（把RDD中的所有元素倒入 Scala集合类型）、lookup（查找对应key的所有值）。 生成hadoop数据集，如saveAsTextFile、saveAsSequenceFile RDD(Resilient Distributed Datasets) 是一个容错的、并行的数据结构，可以让用户显式地将数据存储到磁盘和内存中，并能控制数据的分区。同时，RDD还提供了一组丰富的操作来操作这些数据。在这些操作中，诸如map、flatMap、filter等转换操作实现了monad模式，很好地契合了Scala的集合操作。除此之外，RDD还提供了诸如join、groupBy、reduceByKey等更为方便的操作（注意，reduceByKey是action，而非transformation），以支持常见的数据运算。 RDD作为数据结构，本质上是一个只读的分区记录集合。一个RDD可以包含多个分区，每个分区就是一个dataset片段。RDD可以相互依赖。如果RDD的每个分区最多只能被一个Child RDD的一个分区使用，则称之为narrow dependency；若多个Child RDD分区都可以依赖，则称之为wide dependency。不同的操作依据其特性，可能会产生不同的依赖。例如map操作会产生narrow dependency，而join操作则产生wide dependency。</description></item></channel></rss>
