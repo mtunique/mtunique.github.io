@@ -36,6 +36,10 @@ weight = 4
     ordered = false
     startLevel = 2
 
+  [markup.highlight]
+    style = "rrt"
+
+
 [params]
 
   colortheme = "dark" # dark, light, white, or classic
