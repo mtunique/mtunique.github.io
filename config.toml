@@ -37,7 +37,7 @@ weight = 4
     startLevel = 2
 
   [markup.highlight]
-    style = "rrt"
+    style = "solarized-dark256"
 
 
 [params]
