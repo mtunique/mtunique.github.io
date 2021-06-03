@@ -26,248 +26,248 @@ com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData
 14 minute read</div><div class=article-tag><i class="fas fa-tag"></i>
 <a class=tag-link href=/tags/big-data rel=tag>big-data</a>
 ,
-<a class=tag-link href=/tags/spark rel=tag>spark</a></div></div></header><div class=content itemprop=articleBody><p>这个 Spark Streaming 样例是一个可持久化到Hadoop近实时会话的很好的例子。</p><p><a href=https://spark.apache.org/streaming>Spark Streaming</a> 是Apache Spark 中最有趣的组件之一。你用Spark Streaming可以创建数据管道来用批量加载数据一样的API处理流式数据。此外，Spark Steaming的“micro-batching”方式提供相当好的弹性来应对一些原因造成的任务失败。</p><p>在这篇文章中，我将通过网站的事件近实时回话的例子演示使你熟悉一些常见的和高级的Spark Streaming功能，然后加载活动有关的统计数据到Apache HBase，用不喜欢的BI用具来绘图分析。 (<a href=http://en.wikipedia.org/wiki/Sessionization>Sessionization</a>指的是捕获的单一访问者的网站会话时间范围内所有点击流活动。)你可以在<a href=https://github.com/tmalaska/SparkStreaming.Sessionization>这里</a>找到了这个演示的代码。</p><p>像这样的系统对于了解访问者的行为（无论是人还是机器）是超级有用的。通过一些额外的工作它也可以被设计成windowing模式来以异步方式检测可能的欺诈。</p><p>Spark Streaming 代码</p><p>我们的例子中的main class是：</p><p><code>com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData</code></p><p>让我们来看看这段代码段（忽略1-59行，其中包含imports 和其他无聊的东西）。</p><p>60到112行：设置Spark Streaming 这些行是非常基本的，用来设置的Spark Streaming，同时可以选择从HDFS或socket接收数据流。如果你在Spark Streaming方面是一个新手，我已经添加了一些详细的注释帮助理解代码。 （我不打算在这里详谈，因为仍然在样例代码里。）</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#0f0>//This is just creating a Spark Config object.  I don&#39;t do much here but
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//add the app name.  There are tons of options to put into the Spark config,
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//but none are needed for this simple example.
-</span><span style=color:#0f0></span>    <span style=color:red>val</span> sparkConf <span style=color:red>=</span> <span style=color:red>new</span> SparkConf().
-      setAppName(<span style=color:#87ceeb>&#34;SessionizeData &#34;</span> + args(<span style=color:#f60>0</span>)).
-      set(<span style=color:#87ceeb>&#34;spark.cleaner.ttl&#34;</span>, <span style=color:#87ceeb>&#34;120000&#34;</span>)
+<a class=tag-link href=/tags/spark rel=tag>spark</a></div></div></header><div class=content itemprop=articleBody><p>这个 Spark Streaming 样例是一个可持久化到Hadoop近实时会话的很好的例子。</p><p><a href=https://spark.apache.org/streaming>Spark Streaming</a> 是Apache Spark 中最有趣的组件之一。你用Spark Streaming可以创建数据管道来用批量加载数据一样的API处理流式数据。此外，Spark Steaming的“micro-batching”方式提供相当好的弹性来应对一些原因造成的任务失败。</p><p>在这篇文章中，我将通过网站的事件近实时回话的例子演示使你熟悉一些常见的和高级的Spark Streaming功能，然后加载活动有关的统计数据到Apache HBase，用不喜欢的BI用具来绘图分析。 (<a href=http://en.wikipedia.org/wiki/Sessionization>Sessionization</a>指的是捕获的单一访问者的网站会话时间范围内所有点击流活动。)你可以在<a href=https://github.com/tmalaska/SparkStreaming.Sessionization>这里</a>找到了这个演示的代码。</p><p>像这样的系统对于了解访问者的行为（无论是人还是机器）是超级有用的。通过一些额外的工作它也可以被设计成windowing模式来以异步方式检测可能的欺诈。</p><p>Spark Streaming 代码</p><p>我们的例子中的main class是：</p><p><code>com.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData</code></p><p>让我们来看看这段代码段（忽略1-59行，其中包含imports 和其他无聊的东西）。</p><p>60到112行：设置Spark Streaming 这些行是非常基本的，用来设置的Spark Streaming，同时可以选择从HDFS或socket接收数据流。如果你在Spark Streaming方面是一个新手，我已经添加了一些详细的注释帮助理解代码。 （我不打算在这里详谈，因为仍然在样例代码里。）</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#4e4e4e>//This is just creating a Spark Config object.  I don&#39;t do much here but
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//add the app name.  There are tons of options to put into the Spark config,
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//but none are needed for this simple example.
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>val</span> sparkConf <span style=color:#5f8700>=</span> <span style=color:#5f8700>new</span> <span style=color:#0087ff>SparkConf</span>().
+      setAppName(<span style=color:#00afaf>&#34;SessionizeData &#34;</span> + args(<span style=color:#00afaf>0</span>)).
+      set(<span style=color:#00afaf>&#34;spark.cleaner.ttl&#34;</span>, <span style=color:#00afaf>&#34;120000&#34;</span>)
 
-<span style=color:#0f0>//These two lines will get us out SparkContext and our StreamingContext.
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//These objects have all the root functionality we need to get started.
-</span><span style=color:#0f0></span>    <span style=color:red>val</span> sc <span style=color:red>=</span> <span style=color:red>new</span> SparkContext(sparkConf)
-    <span style=color:red>val</span> ssc <span style=color:red>=</span> <span style=color:red>new</span> StreamingContext(sc, Seconds(<span style=color:#f60>10</span>))
+<span style=color:#4e4e4e>//These two lines will get us out SparkContext and our StreamingContext.
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//These objects have all the root functionality we need to get started.
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>val</span> sc <span style=color:#5f8700>=</span> <span style=color:#5f8700>new</span> <span style=color:#0087ff>SparkContext</span>(sparkConf)
+    <span style=color:#5f8700>val</span> ssc <span style=color:#5f8700>=</span> <span style=color:#5f8700>new</span> <span style=color:#0087ff>StreamingContext</span>(sc, <span style=color:#0087ff>Seconds</span>(<span style=color:#00afaf>10</span>))
 
-<span style=color:#0f0>//Here are are loading our HBase Configuration object.  This will have
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//all the information needed to connect to our HBase cluster.
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//There is nothing different here from when you normally interact with HBase.
-</span><span style=color:#0f0></span>    <span style=color:red>val</span> conf <span style=color:red>=</span> HBaseConfiguration.create();
-    conf.addResource(<span style=color:red>new</span> Path(<span style=color:#87ceeb>&#34;/etc/hbase/conf/core-site.xml&#34;</span>));
-    conf.addResource(<span style=color:red>new</span> Path(<span style=color:#87ceeb>&#34;/etc/hbase/conf/hbase-site.xml&#34;</span>));
+<span style=color:#4e4e4e>//Here are are loading our HBase Configuration object.  This will have
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//all the information needed to connect to our HBase cluster.
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//There is nothing different here from when you normally interact with HBase.
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>val</span> conf <span style=color:#5f8700>=</span> <span style=color:#0087ff>HBaseConfiguration</span>.create();
+    conf.addResource(<span style=color:#5f8700>new</span> <span style=color:#0087ff>Path</span>(<span style=color:#00afaf>&#34;/etc/hbase/conf/core-site.xml&#34;</span>));
+    conf.addResource(<span style=color:#5f8700>new</span> <span style=color:#0087ff>Path</span>(<span style=color:#00afaf>&#34;/etc/hbase/conf/hbase-site.xml&#34;</span>));
 
-<span style=color:#0f0>//This is a HBaseContext object.  This is a nice abstraction that will hide
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//any complex HBase stuff from us so we can focus on our business case
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//HBaseContext is from the SparkOnHBase project which can be found at
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>// https://github.com/tmalaska/SparkOnHBase
-</span><span style=color:#0f0></span>    <span style=color:red>val</span> hbaseContext <span style=color:red>=</span> <span style=color:red>new</span> HBaseContext(sc, conf);
+<span style=color:#4e4e4e>//This is a HBaseContext object.  This is a nice abstraction that will hide
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//any complex HBase stuff from us so we can focus on our business case
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//HBaseContext is from the SparkOnHBase project which can be found at
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>// https://github.com/tmalaska/SparkOnHBase
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>val</span> hbaseContext <span style=color:#5f8700>=</span> <span style=color:#5f8700>new</span> <span style=color:#0087ff>HBaseContext</span>(sc, conf);
 
-<span style=color:#0f0>//This is create a reference to our root DStream.  DStreams are like RDDs but
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//with the context of being in micro batch world.  I set this to null now
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//because I later give the option of populating this data from HDFS or from
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//a socket.  There is no reason this could not also be populated by Kafka,
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//Flume, MQ system, or anything else.  I just focused on these because
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//there are the easiest to set up.
-</span><span style=color:#0f0></span>    <span style=color:red>var</span> lines<span style=color:red>:</span> <span style=color:violet>DStream</span>[<span style=color:violet>String</span>] <span style=color:red>=</span> <span style=color:red>null</span>
+<span style=color:#4e4e4e>//This is create a reference to our root DStream.  DStreams are like RDDs but
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//with the context of being in micro batch world.  I set this to null now
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//because I later give the option of populating this data from HDFS or from
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//a socket.  There is no reason this could not also be populated by Kafka,
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//Flume, MQ system, or anything else.  I just focused on these because
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//there are the easiest to set up.
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>var</span> lines<span style=color:#5f8700>:</span> <span style=color:#af0000>DStream</span>[<span style=color:#af0000>String</span>] <span style=color:#5f8700>=</span> <span style=color:#d75f00>null</span>
 
-<span style=color:#0f0>//Options for data load.  Will be adding Kafka and Flume at some point
-</span><span style=color:#0f0></span>    <span style=color:red>if</span> (args(<span style=color:#f60>0</span>).equals(<span style=color:#87ceeb>&#34;socket&#34;</span>)) {
-      <span style=color:red>val</span> host <span style=color:red>=</span> args(FIXED_ARGS);
-      <span style=color:red>val</span> port <span style=color:red>=</span> args(FIXED_ARGS + <span style=color:#f60>1</span>);
+<span style=color:#4e4e4e>//Options for data load.  Will be adding Kafka and Flume at some point
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>if</span> (args(<span style=color:#00afaf>0</span>).equals(<span style=color:#00afaf>&#34;socket&#34;</span>)) {
+      <span style=color:#5f8700>val</span> host <span style=color:#5f8700>=</span> args(<span style=color:#0087ff>FIXED_ARGS</span>);
+      <span style=color:#5f8700>val</span> port <span style=color:#5f8700>=</span> args(<span style=color:#0087ff>FIXED_ARGS</span> + <span style=color:#00afaf>1</span>);
 
-      println(<span style=color:#87ceeb>&#34;host:&#34;</span> + host)
-      println(<span style=color:#87ceeb>&#34;port:&#34;</span> + Integer.parseInt(port))
+      println(<span style=color:#00afaf>&#34;host:&#34;</span> + host)
+      println(<span style=color:#00afaf>&#34;port:&#34;</span> + <span style=color:#0087ff>Integer</span>.parseInt(port))
 
-<span style=color:#0f0>//Simple example of how you set up a receiver from a Socket Stream
-</span><span style=color:#0f0></span>      lines <span style=color:red>=</span> ssc.socketTextStream(host, port.toInt)
-    } <span style=color:red>else</span> <span style=color:red>if</span> (args(<span style=color:#f60>0</span>).equals(<span style=color:#87ceeb>&#34;newFile&#34;</span>)) {
+<span style=color:#4e4e4e>//Simple example of how you set up a receiver from a Socket Stream
+</span><span style=color:#4e4e4e></span>      lines <span style=color:#5f8700>=</span> ssc.socketTextStream(host, port.toInt)
+    } <span style=color:#5f8700>else</span> <span style=color:#5f8700>if</span> (args(<span style=color:#00afaf>0</span>).equals(<span style=color:#00afaf>&#34;newFile&#34;</span>)) {
 
-      <span style=color:red>val</span> directory <span style=color:red>=</span> args(FIXED_ARGS)
-      println(<span style=color:#87ceeb>&#34;directory:&#34;</span> + directory)
+      <span style=color:#5f8700>val</span> directory <span style=color:#5f8700>=</span> args(<span style=color:#0087ff>FIXED_ARGS</span>)
+      println(<span style=color:#00afaf>&#34;directory:&#34;</span> + directory)
 
-<span style=color:#0f0>//Simple example of how you set up a receiver from a HDFS folder
-</span><span style=color:#0f0></span>      lines <span style=color:red>=</span> ssc.fileStream[<span style=color:violet>LongWritable</span>, <span style=color:violet>Text</span>, <span style=color:violet>TextInputFormat</span>](directory, (t<span style=color:red>:</span> <span style=color:violet>Path</span>) =&amp;gt; <span style=color:red>true</span>, <span style=color:red>true</span>).map(<span style=color:red>_</span>._2.toString)
-    } <span style=color:red>else</span> {
-      <span style=color:red>throw</span> <span style=color:red>new</span> RuntimeException(<span style=color:#87ceeb>&#34;bad input type&#34;</span>)
+<span style=color:#4e4e4e>//Simple example of how you set up a receiver from a HDFS folder
+</span><span style=color:#4e4e4e></span>      lines <span style=color:#5f8700>=</span> ssc.fileStream[<span style=color:#af0000>LongWritable</span>, <span style=color:#af0000>Text</span>, <span style=color:#af0000>TextInputFormat</span>](directory, (t<span style=color:#5f8700>:</span> <span style=color:#af0000>Path</span>) =&amp;gt; <span style=color:#d75f00>true</span>, <span style=color:#d75f00>true</span>).map(<span style=color:#5f8700>_</span>._2.toString)
+    } <span style=color:#5f8700>else</span> {
+      <span style=color:#5f8700>throw</span> <span style=color:#5f8700>new</span> <span style=color:#0087ff>RuntimeException</span>(<span style=color:#00afaf>&#34;bad input type&#34;</span>)
     }
-</code></pre></div><p>114到124行: 字符串解析 这里是Spark Streaming的开始的地方. 请看下面四行：:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:red>val</span> ipKeyLines <span style=color:red>=</span> lines.map[(<span style=color:violet>String</span>, (<span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>String</span>))](eventRecord =&amp;gt; {
+</code></pre></div><p>114到124行: 字符串解析 这里是Spark Streaming的开始的地方. 请看下面四行：:</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#5f8700>val</span> ipKeyLines <span style=color:#5f8700>=</span> lines.map[(<span style=color:#af0000>String</span>, (<span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>String</span>))](eventRecord =&amp;gt; {
 
-<span style=color:#0f0>//Get the time and ip address out of the original event
-</span><span style=color:#0f0></span>      <span style=color:red>val</span> time <span style=color:red>=</span> dateFormat.parse(
-        eventRecord.substring(eventRecord.indexOf(<span style=color:#87ceeb>&#39;[&#39;</span>) + <span style=color:#f60>1</span>, eventRecord.indexOf(<span style=color:#87ceeb>&#39;]&#39;</span>))).
+<span style=color:#4e4e4e>//Get the time and ip address out of the original event
+</span><span style=color:#4e4e4e></span>      <span style=color:#5f8700>val</span> time <span style=color:#5f8700>=</span> dateFormat.parse(
+        eventRecord.substring(eventRecord.indexOf(<span style=color:#00afaf>&#39;[&#39;</span>) + <span style=color:#00afaf>1</span>, eventRecord.indexOf(<span style=color:#00afaf>&#39;]&#39;</span>))).
         getTime()
-      <span style=color:red>val</span> ipAddress <span style=color:red>=</span> eventRecord.substring(<span style=color:#f60>0</span>, eventRecord.indexOf(<span style=color:#87ceeb>&#39; &#39;</span>))
+      <span style=color:#5f8700>val</span> ipAddress <span style=color:#5f8700>=</span> eventRecord.substring(<span style=color:#00afaf>0</span>, eventRecord.indexOf(<span style=color:#00afaf>&#39; &#39;</span>))
 
-<span style=color:#0f0>//We are return the time twice because we will use the first at the start time
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//and the second as the end time
-</span><span style=color:#0f0></span>      (ipAddress, (time, time, eventRecord))
+<span style=color:#4e4e4e>//We are return the time twice because we will use the first at the start time
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//and the second as the end time
+</span><span style=color:#4e4e4e></span>      (ipAddress, (time, time, eventRecord))
     })
-</code></pre></div><p>上面第一命令是在DSTREAM对象“lines”上进行了map函数和，解析原始事件来分离出的IP地址，时间戳和事件的body。对于那些Spark Streaming的新手，一个DSTREAM保存着要处理的一批记录。这些记录由以前所定义的receiver对象填充，并且此map函数在这个micro-batch内产生另一个DSTREAM存储变换后的记录来进行额外的处理。</p><p><img src=https://dn-mtunique.qbox.me/sessionization-f11.png alt=image></p><p>当看像上面的Spark Streaming示意图时，有一些事情要注意：:</p><ul><li>每个micro-batch在到达构建StreamingContext时设定的那一秒时被销毁</li><li>Receiver总是用被下一个micro-batch中的RDDS填充</li><li>之前micro batch中老的RDDs将被清理丢弃</li></ul><p>126到135行：产生Sessions 现在，我们有从网络日志中获得的IP地址和时间，是时候建立sessions了。下面的代码是通过micro-batch内的第一聚集事件建立session，然后在DSTREAM中reduce这些会话。</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:red>val</span> latestSessionInfo <span style=color:red>=</span> ipKeyLines.
-      map[(<span style=color:violet>String</span>, (<span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Long</span>))](a =&amp;gt; {
+</code></pre></div><p>上面第一命令是在DSTREAM对象“lines”上进行了map函数和，解析原始事件来分离出的IP地址，时间戳和事件的body。对于那些Spark Streaming的新手，一个DSTREAM保存着要处理的一批记录。这些记录由以前所定义的receiver对象填充，并且此map函数在这个micro-batch内产生另一个DSTREAM存储变换后的记录来进行额外的处理。</p><p><img src=https://dn-mtunique.qbox.me/sessionization-f11.png alt=image></p><p>当看像上面的Spark Streaming示意图时，有一些事情要注意：:</p><ul><li>每个micro-batch在到达构建StreamingContext时设定的那一秒时被销毁</li><li>Receiver总是用被下一个micro-batch中的RDDS填充</li><li>之前micro batch中老的RDDs将被清理丢弃</li></ul><p>126到135行：产生Sessions 现在，我们有从网络日志中获得的IP地址和时间，是时候建立sessions了。下面的代码是通过micro-batch内的第一聚集事件建立session，然后在DSTREAM中reduce这些会话。</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#5f8700>val</span> latestSessionInfo <span style=color:#5f8700>=</span> ipKeyLines.
+      map[(<span style=color:#af0000>String</span>, (<span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>))](a =&amp;gt; {
 
-<span style=color:#0f0>//transform to (ipAddress, (time, time, counter))
-</span><span style=color:#0f0></span>        (a._1, (a._2._1, a._2._2, <span style=color:#f60>1</span>))
+<span style=color:#4e4e4e>//transform to (ipAddress, (time, time, counter))
+</span><span style=color:#4e4e4e></span>        (a._1, (a._2._1, a._2._2, <span style=color:#00afaf>1</span>))
       }).
       reduceByKey((a, b) =&amp;gt; {
 
-<span style=color:#0f0>//transform to (ipAddress, (lowestStartTime, MaxFinishTime, sumOfCounter))
-</span><span style=color:#0f0></span>        (Math.min(a._1, b._1), Math.max(a._2, b._2), a._3 + b._3)
+<span style=color:#4e4e4e>//transform to (ipAddress, (lowestStartTime, MaxFinishTime, sumOfCounter))
+</span><span style=color:#4e4e4e></span>        (<span style=color:#0087ff>Math</span>.min(a._1, b._1), <span style=color:#0087ff>Math</span>.max(a._2, b._2), a._3 + b._3)
       }).
       updateStateByKey(updateStatbyOfSessions)
-</code></pre></div><p>这里有一个关于records如何在micro-batch中被reduce的例子： <img src=https://dn-mtunique.qbox.me/sessionization-table.png alt=image></p><p>在会话范围内的 micro-batch 内加入，我们可以用超酷的updateStateByKey功能（做join/reduce-like操作）下图说明了就DStreams而言，随着时间变化这个处理过程是怎样的。</p><p><img src=https://dn-mtunique.qbox.me/sessionization-f2.png alt=image></p><p>现在，让我们深入到updateStatbyOfSessions函数，它被定义在文件的底部。此代码（注意详细注释）含有大量的魔法，使sessionization发生在micro-batch的连续模式中。</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#0f0>/**
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>* This function will be called for to union of keys in the Reduce DStream
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>* with the active sessions from the last micro batch with the ipAddress
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>* being the key
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>*
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>* To goal is that this produces a stateful RDD that has all the active
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>* sessions.  So we add new sessions and remove sessions that have timed
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>* out and extend sessions that are still going
-</span><span style=color:#0f0>
-</span><span style=color:#0f0>*/</span>
-  <span style=color:red>def</span> updateStatbyOfSessions(
+</code></pre></div><p>这里有一个关于records如何在micro-batch中被reduce的例子： <img src=https://dn-mtunique.qbox.me/sessionization-table.png alt=image></p><p>在会话范围内的 micro-batch 内加入，我们可以用超酷的updateStateByKey功能（做join/reduce-like操作）下图说明了就DStreams而言，随着时间变化这个处理过程是怎样的。</p><p><img src=https://dn-mtunique.qbox.me/sessionization-f2.png alt=image></p><p>现在，让我们深入到updateStatbyOfSessions函数，它被定义在文件的底部。此代码（注意详细注释）含有大量的魔法，使sessionization发生在micro-batch的连续模式中。</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#4e4e4e>/**
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>* This function will be called for to union of keys in the Reduce DStream
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>* with the active sessions from the last micro batch with the ipAddress
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>* being the key
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>*
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>* To goal is that this produces a stateful RDD that has all the active
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>* sessions.  So we add new sessions and remove sessions that have timed
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>* out and extend sessions that are still going
+</span><span style=color:#4e4e4e>
+</span><span style=color:#4e4e4e>*/</span>
+  <span style=color:#5f8700>def</span> updateStatbyOfSessions(
 
-<span style=color:#0f0>//(sessionStartTime, sessionFinishTime, countOfEvents)
-</span><span style=color:#0f0></span>      a<span style=color:red>:</span> <span style=color:violet>Seq</span>[(<span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Long</span>)],
+<span style=color:#4e4e4e>//(sessionStartTime, sessionFinishTime, countOfEvents)
+</span><span style=color:#4e4e4e></span>      a<span style=color:#5f8700>:</span> <span style=color:#af0000>Seq</span>[(<span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>)],
 
-<span style=color:#0f0>//(sessionStartTime, sessionFinishTime, countOfEvents, isNewSession)
-</span><span style=color:#0f0></span>      b<span style=color:red>:</span> <span style=color:violet>Option</span>[(<span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Boolean</span>)]
-    )<span style=color:red>:</span> <span style=color:violet>Option</span>[(<span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Boolean</span>)] <span style=color:red>=</span> {
+<span style=color:#4e4e4e>//(sessionStartTime, sessionFinishTime, countOfEvents, isNewSession)
+</span><span style=color:#4e4e4e></span>      b<span style=color:#5f8700>:</span> <span style=color:#af0000>Option</span>[(<span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Boolean</span>)]
+    )<span style=color:#5f8700>:</span> <span style=color:#af0000>Option</span>[(<span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Boolean</span>)] <span style=color:#5f8700>=</span> {
 
-<span style=color:#0f0>//This function will return a Optional value.
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//If we want to delete the value we can return a optional &#34;None&#34;.
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//This value contains four parts
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//(startTime, endTime, countOfEvents, isNewSession)
-</span><span style=color:#0f0></span>    <span style=color:red>var</span> result<span style=color:red>:</span> <span style=color:violet>Option</span>[(<span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Long</span>, <span style=color:violet>Boolean</span>)] <span style=color:red>=</span> <span style=color:red>null</span>
+<span style=color:#4e4e4e>//This function will return a Optional value.
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//If we want to delete the value we can return a optional &#34;None&#34;.
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//This value contains four parts
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//(startTime, endTime, countOfEvents, isNewSession)
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>var</span> result<span style=color:#5f8700>:</span> <span style=color:#af0000>Option</span>[(<span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Long</span>, <span style=color:#af0000>Boolean</span>)] <span style=color:#5f8700>=</span> <span style=color:#d75f00>null</span>
 
-<span style=color:#0f0>// These if statements are saying if we didn&#39;t get a new event for
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//this session&#39;s ip address for longer then the session
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//timeout + the batch time then it is safe to remove this key value
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//from the future Stateful DStream
-</span><span style=color:#0f0></span>    <span style=color:red>if</span> (a.size == <span style=color:#f60>0</span>) {
-      <span style=color:red>if</span> (System.currentTimeMillis() - b.get._2 &amp;gt; SESSION_TIMEOUT + <span style=color:#f60>11000</span>) {
-        result <span style=color:red>=</span> None
-      } <span style=color:red>else</span> {
-        <span style=color:red>if</span> (b.get._4 == <span style=color:red>false</span>) {
-          result <span style=color:red>=</span> b
-        } <span style=color:red>else</span> {
-          result <span style=color:red>=</span> Some((b.get._1, b.get._2, b.get._3, <span style=color:red>false</span>))
+<span style=color:#4e4e4e>// These if statements are saying if we didn&#39;t get a new event for
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//this session&#39;s ip address for longer then the session
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//timeout + the batch time then it is safe to remove this key value
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//from the future Stateful DStream
+</span><span style=color:#4e4e4e></span>    <span style=color:#5f8700>if</span> (a.size == <span style=color:#00afaf>0</span>) {
+      <span style=color:#5f8700>if</span> (<span style=color:#0087ff>System</span>.currentTimeMillis() - b.get._2 &amp;gt; <span style=color:#0087ff>SESSION_TIMEOUT</span> + <span style=color:#00afaf>11000</span>) {
+        result <span style=color:#5f8700>=</span> <span style=color:#0087ff>None</span>
+      } <span style=color:#5f8700>else</span> {
+        <span style=color:#5f8700>if</span> (b.get._4 == <span style=color:#d75f00>false</span>) {
+          result <span style=color:#5f8700>=</span> b
+        } <span style=color:#5f8700>else</span> {
+          result <span style=color:#5f8700>=</span> <span style=color:#0087ff>Some</span>((b.get._1, b.get._2, b.get._3, <span style=color:#d75f00>false</span>))
         }
       }
     }
 
-<span style=color:#0f0>//Now because we used the reduce function before this function we are
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//only ever going to get at most one event in the Sequence.
-</span><span style=color:#0f0></span>    a.foreach(c =&amp;gt; {
-      <span style=color:red>if</span> (b.isEmpty) {
+<span style=color:#4e4e4e>//Now because we used the reduce function before this function we are
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//only ever going to get at most one event in the Sequence.
+</span><span style=color:#4e4e4e></span>    a.foreach(c =&amp;gt; {
+      <span style=color:#5f8700>if</span> (b.isEmpty) {
 
-<span style=color:#0f0>//If there was no value in the Stateful DStream then just add it
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//new, with a true for being a new session
-</span><span style=color:#0f0></span>        result <span style=color:red>=</span> Some((c._1, c._2, c._3, <span style=color:red>true</span>))
-      } <span style=color:red>else</span> {
-        <span style=color:red>if</span> (c._1 - b.get._2 &amp;lt; SESSION_TIMEOUT) {
+<span style=color:#4e4e4e>//If there was no value in the Stateful DStream then just add it
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//new, with a true for being a new session
+</span><span style=color:#4e4e4e></span>        result <span style=color:#5f8700>=</span> <span style=color:#0087ff>Some</span>((c._1, c._2, c._3, <span style=color:#d75f00>true</span>))
+      } <span style=color:#5f8700>else</span> {
+        <span style=color:#5f8700>if</span> (c._1 - b.get._2 &amp;lt; <span style=color:#0087ff>SESSION_TIMEOUT</span>) {
 
-<span style=color:#0f0>//If the session from the stateful DStream has not timed out
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//then extend the session
-</span><span style=color:#0f0></span>          result <span style=color:red>=</span> Some((
-              Math.min(c._1, b.get._1),
-<span style=color:#0f0>//newStartTime
-</span><span style=color:#0f0></span>              Math.max(c._2, b.get._2),
-<span style=color:#0f0>//newFinishTime
-</span><span style=color:#0f0></span>              b.get._3 + c._3,
-<span style=color:#0f0>//newSumOfEvents
-</span><span style=color:#0f0></span>              <span style=color:red>false</span>
-<span style=color:#0f0>//This is not a new session
-</span><span style=color:#0f0></span>            ))
-        } <span style=color:red>else</span> {
+<span style=color:#4e4e4e>//If the session from the stateful DStream has not timed out
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//then extend the session
+</span><span style=color:#4e4e4e></span>          result <span style=color:#5f8700>=</span> <span style=color:#0087ff>Some</span>((
+              <span style=color:#0087ff>Math</span>.min(c._1, b.get._1),
+<span style=color:#4e4e4e>//newStartTime
+</span><span style=color:#4e4e4e></span>              <span style=color:#0087ff>Math</span>.max(c._2, b.get._2),
+<span style=color:#4e4e4e>//newFinishTime
+</span><span style=color:#4e4e4e></span>              b.get._3 + c._3,
+<span style=color:#4e4e4e>//newSumOfEvents
+</span><span style=color:#4e4e4e></span>              <span style=color:#d75f00>false</span>
+<span style=color:#4e4e4e>//This is not a new session
+</span><span style=color:#4e4e4e></span>            ))
+        } <span style=color:#5f8700>else</span> {
 
-<span style=color:#0f0>//Otherwise remove the old session with a new one
-</span><span style=color:#0f0></span>          result <span style=color:red>=</span> Some((
+<span style=color:#4e4e4e>//Otherwise remove the old session with a new one
+</span><span style=color:#4e4e4e></span>          result <span style=color:#5f8700>=</span> <span style=color:#0087ff>Some</span>((
               c._1,
-<span style=color:#0f0>//newStartTime
-</span><span style=color:#0f0></span>              c._2,
-<span style=color:#0f0>//newFinishTime
-</span><span style=color:#0f0></span>              b.get._3,
-<span style=color:#0f0>//newSumOfEvents
-</span><span style=color:#0f0></span>              <span style=color:red>true</span>
-<span style=color:#0f0>//new session
-</span><span style=color:#0f0></span>            ))
+<span style=color:#4e4e4e>//newStartTime
+</span><span style=color:#4e4e4e></span>              c._2,
+<span style=color:#4e4e4e>//newFinishTime
+</span><span style=color:#4e4e4e></span>              b.get._3,
+<span style=color:#4e4e4e>//newSumOfEvents
+</span><span style=color:#4e4e4e></span>              <span style=color:#d75f00>true</span>
+<span style=color:#4e4e4e>//new session
+</span><span style=color:#4e4e4e></span>            ))
         }
       }
     })
     result
   }
 }
-</code></pre></div><p>在这段代码做了很多事，而且通过很多方式，这是整个工作中最复杂的部分。总之，它跟踪活动的会话，所以你知道你是继续现有的会话还是启动一个新的。</p><p>126到207行：计数和HBase 这部分做了大多数计数工作。在这里有很多是重复的，让我们只看一个count的例子，然后一步步地我们把生成的同一个记录counts存储在HBase中。</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:red>val</span> onlyActiveSessions <span style=color:red>=</span> latestSessionInfo.filter(t =&amp;gt; System.currentTimeMillis() - t._2._2 &amp;lt; SESSION_TIMEOUT)
+</code></pre></div><p>在这段代码做了很多事，而且通过很多方式，这是整个工作中最复杂的部分。总之，它跟踪活动的会话，所以你知道你是继续现有的会话还是启动一个新的。</p><p>126到207行：计数和HBase 这部分做了大多数计数工作。在这里有很多是重复的，让我们只看一个count的例子，然后一步步地我们把生成的同一个记录counts存储在HBase中。</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#5f8700>val</span> onlyActiveSessions <span style=color:#5f8700>=</span> latestSessionInfo.filter(t =&amp;gt; <span style=color:#0087ff>System</span>.currentTimeMillis() - t._2._2 &amp;lt; <span style=color:#0087ff>SESSION_TIMEOUT</span>)
 …
-<span style=color:red>val</span> newSessionCount <span style=color:red>=</span> onlyActiveSessions.filter(t =&amp;gt; {
+<span style=color:#5f8700>val</span> newSessionCount <span style=color:#5f8700>=</span> onlyActiveSessions.filter(t =&amp;gt; {
 
-<span style=color:#0f0>//is the session newer then that last micro batch
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//and is the boolean saying this is a new session true
-</span><span style=color:#0f0></span>        (System.currentTimeMillis() - t._2._2 &amp;gt; <span style=color:#f60>11000</span> &amp;amp;&amp;amp; t._2._4)
+<span style=color:#4e4e4e>//is the session newer then that last micro batch
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//and is the boolean saying this is a new session true
+</span><span style=color:#4e4e4e></span>        (<span style=color:#0087ff>System</span>.currentTimeMillis() - t._2._2 &amp;gt; <span style=color:#00afaf>11000</span> &amp;amp;&amp;amp; t._2._4)
       }).
       count.
-      map[<span style=color:violet>HashMap</span>[<span style=color:violet>String</span>, <span style=color:violet>Long</span>]](t =&amp;gt; HashMap((NEW_SESSION_COUNTS, t)))
-</code></pre></div><p>总之，上面的代码是过滤除了活动的会话其他所有会话，对他们进行计数，并把该最终计记录到一个的HashMap实例中。它使用HashMap作为容器，所以在所有的count做完后，我们可以调用下面的reduce函数把他们都到一个单一的记录。 （我敢肯定有更好的方法来实现这一点，但这种方法工作得很好。）</p><p>接下来，下面的代码处理所有的那些HashMap，并把他们所有的值在一个HashMap中。</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:red>val</span> allCounts <span style=color:red>=</span> newSessionCount.
+      map[<span style=color:#af0000>HashMap</span>[<span style=color:#af0000>String</span>, <span style=color:#af0000>Long</span>]](t =&amp;gt; <span style=color:#0087ff>HashMap</span>((<span style=color:#0087ff>NEW_SESSION_COUNTS</span>, t)))
+</code></pre></div><p>总之，上面的代码是过滤除了活动的会话其他所有会话，对他们进行计数，并把该最终计记录到一个的HashMap实例中。它使用HashMap作为容器，所以在所有的count做完后，我们可以调用下面的reduce函数把他们都到一个单一的记录。 （我敢肯定有更好的方法来实现这一点，但这种方法工作得很好。）</p><p>接下来，下面的代码处理所有的那些HashMap，并把他们所有的值在一个HashMap中。</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#5f8700>val</span> allCounts <span style=color:#5f8700>=</span> newSessionCount.
       union(totalSessionCount).
       union(totals).
       union(totalEventsCount).
       union(deadSessionsCount).
       union(totalSessionEventCount).
       reduce((a, b) =&amp;gt; b ++ a)
-</code></pre></div><p>用HBaseContext来使Spark Streaming与HBase交互超级简单。所有你需要做的就是用HashMap和函数将其转换为一个put对象提供给DSTREAM。</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala>hbaseContext.streamBulkPut[<span style=color:violet>HashMap</span>[<span style=color:violet>String</span>, <span style=color:violet>Long</span>]](
+</code></pre></div><p>用HBaseContext来使Spark Streaming与HBase交互超级简单。所有你需要做的就是用HashMap和函数将其转换为一个put对象提供给DSTREAM。</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala>hbaseContext.streamBulkPut[<span style=color:#af0000>HashMap</span>[<span style=color:#af0000>String</span>, <span style=color:#af0000>Long</span>]](
       allCounts,
-<span style=color:#0f0>//The input RDD
-</span><span style=color:#0f0></span>      hTableName,
-<span style=color:#0f0>//The name of the table we want to put too
-</span><span style=color:#0f0></span>      (t) =&amp;gt; {
+<span style=color:#4e4e4e>//The input RDD
+</span><span style=color:#4e4e4e></span>      hTableName,
+<span style=color:#4e4e4e>//The name of the table we want to put too
+</span><span style=color:#4e4e4e></span>      (t) =&amp;gt; {
 
-<span style=color:#0f0>//Here we are converting our input record into a put
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//The rowKey is C for Count and a backward counting time so the newest
-</span><span style=color:#0f0></span>
-<span style=color:#0f0>//count show up first in HBase&#39;s sorted order
-</span><span style=color:#0f0></span>        <span style=color:red>val</span> put <span style=color:red>=</span> <span style=color:red>new</span> Put(Bytes.toBytes(<span style=color:#87ceeb>&#34;C.&#34;</span> + (Long.MaxValue - System.currentTimeMillis())))
+<span style=color:#4e4e4e>//Here we are converting our input record into a put
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//The rowKey is C for Count and a backward counting time so the newest
+</span><span style=color:#4e4e4e></span>
+<span style=color:#4e4e4e>//count show up first in HBase&#39;s sorted order
+</span><span style=color:#4e4e4e></span>        <span style=color:#5f8700>val</span> put <span style=color:#5f8700>=</span> <span style=color:#5f8700>new</span> <span style=color:#0087ff>Put</span>(<span style=color:#0087ff>Bytes</span>.toBytes(<span style=color:#00afaf>&#34;C.&#34;</span> + (<span style=color:#0087ff>Long</span>.<span style=color:#0087ff>MaxValue</span> - <span style=color:#0087ff>System</span>.currentTimeMillis())))
 
-<span style=color:#0f0>//We are iterating through the HashMap to make all the columns with their counts
-</span><span style=color:#0f0></span>        t.foreach(kv =&amp;gt; put.add(Bytes.toBytes(hFamily), Bytes.toBytes(kv._1), Bytes.toBytes(kv._2.toString)))
+<span style=color:#4e4e4e>//We are iterating through the HashMap to make all the columns with their counts
+</span><span style=color:#4e4e4e></span>        t.foreach(kv =&amp;gt; put.add(<span style=color:#0087ff>Bytes</span>.toBytes(hFamily), <span style=color:#0087ff>Bytes</span>.toBytes(kv._1), <span style=color:#0087ff>Bytes</span>.toBytes(kv._2.toString)))
         put
       },
-      <span style=color:red>false</span>)
-</code></pre></div><p>现在，HBase的这些信息可以用Apache Hive table包起来，然后通过你喜欢的BI工具执行一个查询来获取像下面这样的图，它每次micro-batch会刷新。 <img src=https://dn-mtunique.qbox.me/sessionization-f3.png alt=image></p><p>209到215行：写入HDFS 最后的任务是把拥有事件数据的活动会话信息加入，然后把事件以会话的开始时间来持久化到HDFS。</p><div class=highlight><pre style=color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#0f0>//Persist to HDFS
-</span><span style=color:#0f0></span>ipKeyLines.join(onlyActiveSessions).
+      <span style=color:#d75f00>false</span>)
+</code></pre></div><p>现在，HBase的这些信息可以用Apache Hive table包起来，然后通过你喜欢的BI工具执行一个查询来获取像下面这样的图，它每次micro-batch会刷新。 <img src=https://dn-mtunique.qbox.me/sessionization-f3.png alt=image></p><p>209到215行：写入HDFS 最后的任务是把拥有事件数据的活动会话信息加入，然后把事件以会话的开始时间来持久化到HDFS。</p><div class=highlight><pre style=color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-scala data-lang=scala><span style=color:#4e4e4e>//Persist to HDFS
+</span><span style=color:#4e4e4e></span>ipKeyLines.join(onlyActiveSessions).
   map(t =&amp;gt; {
 
-<span style=color:#0f0>//Session root start time | Event message
-</span><span style=color:#0f0></span>    dateFormat.format(<span style=color:red>new</span> Date(t._2._2._1)) + <span style=color:#87ceeb>&#34;t&#34;</span> + t._2._1._3
+<span style=color:#4e4e4e>//Session root start time | Event message
+</span><span style=color:#4e4e4e></span>    dateFormat.format(<span style=color:#5f8700>new</span> <span style=color:#0087ff>Date</span>(t._2._2._1)) + <span style=color:#00afaf>&#34;t&#34;</span> + t._2._1._3
   }).
-  saveAsTextFiles(outputDir + <span style=color:#87ceeb>&#34;/session&#34;</span>, <span style=color:#87ceeb>&#34;txt&#34;</span>)
+  saveAsTextFiles(outputDir + <span style=color:#00afaf>&#34;/session&#34;</span>, <span style=color:#00afaf>&#34;txt&#34;</span>)
 ```
 
 结论
 
-我希望你跳出这个例子 来走像了很多工作，感觉与代码只是一点点做，因为它是。想象一下你还可以用这种模式和Spark Streaming与HBase HDFS很容易交互的这种能力做什么东西。
+我希望你跳出这个例子 来走像了很多工作，感觉与代码只是一点点做，因为它是。想象一下你还可以用这种模式和Spark <span style=color:#0087ff>Streaming与HBase</span> <span style=color:#0087ff>HDFS很容易交互的这种能力做什么东西</span>。
 
-[<span style=color:violet>原文</span>](http<span style=color:red>:</span><span style=color:#0f0>//blog.cloudera.com/blog/2014/11/how-to-do-near-real-time-sessionization-with-spark-streaming-and-apache-hadoop/)
+[<span style=color:#af0000>原文</span>](http<span style=color:#5f8700>:</span><span style=color:#4e4e4e>//blog.cloudera.com/blog/2014/11/how-to-do-near-real-time-sessionization-with-spark-streaming-and-apache-hadoop/)
 </span></code></pre></div></div></article><div class=blog-post-comments><div id=disqus_thread><script type=text/javascript>(function(){var a=document.createElement('script'),b;a.type='text/javascript',a.async=!0,b='mtunique',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></div><div id=footer-post-container><div id=footer-post><div id=nav-footer style=display:none><ul><li><a href=/>Home</a></li><li><a href=/posts>Writings</a></li><li><a href=/tags>Tags</a></li><li><a href=/about>About</a></li></ul></div><div id=toc-footer style=display:none><nav id=TableOfContents></nav></div><div id=share-footer style=display:none><ul><li><a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f" aria-label=Facebook><i class="fab fa-facebook fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://twitter.com/share?url=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&text=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5" aria-label=Twitter><i class="fab fa-twitter fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&title=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5" aria-label=Linkedin><i class="fab fa-linkedin fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&is_video=false&description=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5" aria-label=Pinterest><i class="fab fa-pinterest fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="mailto:?subject=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5&body=Check out this article: https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f" aria-label=Email><i class="fas fa-envelope fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&title=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5" aria-label=Pocket><i class="fab fa-get-pocket fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&title=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5" aria-label=reddit><i class="fab fa-reddit fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&name=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5&description=%e8%bf%99%e4%b8%aa%20Spark%20Streaming%c2%a0%e6%a0%b7%e4%be%8b%e6%98%af%e4%b8%80%e4%b8%aa%e5%8f%af%e6%8c%81%e4%b9%85%e5%8c%96%e5%88%b0Hadoop%e8%bf%91%e5%ae%9e%e6%97%b6%e4%bc%9a%e8%af%9d%e7%9a%84%e5%be%88%e5%a5%bd%e7%9a%84%e4%be%8b%e5%ad%90%e3%80%82%0aSpark%20Streaming%c2%a0%e6%98%afApache%20Spark%20%e4%b8%ad%e6%9c%80%e6%9c%89%e8%b6%a3%e7%9a%84%e7%bb%84%e4%bb%b6%e4%b9%8b%e4%b8%80%e3%80%82%e4%bd%a0%e7%94%a8Spark%20Streaming%e5%8f%af%e4%bb%a5%e5%88%9b%e5%bb%ba%e6%95%b0%e6%8d%ae%e7%ae%a1%e9%81%93%e6%9d%a5%e7%94%a8%e6%89%b9%e9%87%8f%e5%8a%a0%e8%bd%bd%e6%95%b0%e6%8d%ae%e4%b8%80%e6%a0%b7%e7%9a%84API%e5%a4%84%e7%90%86%e6%b5%81%e5%bc%8f%e6%95%b0%e6%8d%ae%e3%80%82%e6%ad%a4%e5%a4%96%ef%bc%8cSpark%c2%a0Steaming%e7%9a%84%e2%80%9cmicro-batching%e2%80%9d%e6%96%b9%e5%bc%8f%e6%8f%90%e4%be%9b%e7%9b%b8%e5%bd%93%e5%a5%bd%e7%9a%84%e5%bc%b9%e6%80%a7%e6%9d%a5%e5%ba%94%e5%af%b9%e4%b8%80%e4%ba%9b%e5%8e%9f%e5%9b%a0%e9%80%a0%e6%88%90%e7%9a%84%e4%bb%bb%e5%8a%a1%e5%a4%b1%e8%b4%a5%e3%80%82%0a%e5%9c%a8%e8%bf%99%e7%af%87%e6%96%87%e7%ab%a0%e4%b8%ad%ef%bc%8c%e6%88%91%e5%b0%86%e9%80%9a%e8%bf%87%e7%bd%91%e7%ab%99%e7%9a%84%e4%ba%8b%e4%bb%b6%e8%bf%91%e5%ae%9e%e6%97%b6%e5%9b%9e%e8%af%9d%e7%9a%84%e4%be%8b%e5%ad%90%e6%bc%94%e7%a4%ba%e4%bd%bf%e4%bd%a0%e7%86%9f%e6%82%89%e4%b8%80%e4%ba%9b%e5%b8%b8%e8%a7%81%e7%9a%84%e5%92%8c%e9%ab%98%e7%ba%a7%e7%9a%84Spark%20Streaming%e5%8a%9f%e8%83%bd%ef%bc%8c%e7%84%b6%e5%90%8e%e5%8a%a0%e8%bd%bd%e6%b4%bb%e5%8a%a8%e6%9c%89%e5%85%b3%e7%9a%84%e7%bb%9f%e8%ae%a1%e6%95%b0%e6%8d%ae%e5%88%b0Apache%20HBase%ef%bc%8c%e7%94%a8%e4%b8%8d%e5%96%9c%e6%ac%a2%e7%9a%84BI%e7%94%a8%e5%85%b7%e6%9d%a5%e7%bb%98%e5%9b%be%e5%88%86%e6%9e%90%e3%80%82%20%28Sessionization%e6%8c%87%e7%9a%84%e6%98%af%e6%8d%95%e8%8e%b7%e7%9a%84%e5%8d%95%e4%b8%80%e8%ae%bf%e9%97%ae%e8%80%85%e7%9a%84%e7%bd%91%e7%ab%99%e4%bc%9a%e8%af%9d%e6%97%b6%e9%97%b4%e8%8c%83%e5%9b%b4%e5%86%85%e6%89%80%e6%9c%89%e7%82%b9%e5%87%bb%e6%b5%81%e6%b4%bb%e5%8a%a8%e3%80%82%29%e4%bd%a0%e5%8f%af%e4%bb%a5%e5%9c%a8%e8%bf%99%e9%87%8c%e6%89%be%e5%88%b0%e4%ba%86%e8%bf%99%e4%b8%aa%e6%bc%94%e7%a4%ba%e7%9a%84%e4%bb%a3%e7%a0%81%e3%80%82%0a%e5%83%8f%e8%bf%99%e6%a0%b7%e7%9a%84%e7%b3%bb%e7%bb%9f%e5%af%b9%e4%ba%8e%e4%ba%86%e8%a7%a3%e8%ae%bf%e9%97%ae%e8%80%85%e7%9a%84%e8%a1%8c%e4%b8%ba%ef%bc%88%e6%97%a0%e8%ae%ba%e6%98%af%e4%ba%ba%e8%bf%98%e6%98%af%e6%9c%ba%e5%99%a8%ef%bc%89%e6%98%af%e8%b6%85%e7%ba%a7%e6%9c%89%e7%94%a8%e7%9a%84%e3%80%82%e9%80%9a%e8%bf%87%e4%b8%80%e4%ba%9b%e9%a2%9d%e5%a4%96%e7%9a%84%e5%b7%a5%e4%bd%9c%e5%ae%83%e4%b9%9f%e5%8f%af%e4%bb%a5%e8%a2%ab%e8%ae%be%e8%ae%a1%e6%88%90windowing%e6%a8%a1%e5%bc%8f%e6%9d%a5%e4%bb%a5%e5%bc%82%e6%ad%a5%e6%96%b9%e5%bc%8f%e6%a3%80%e6%b5%8b%e5%8f%af%e8%83%bd%e7%9a%84%e6%ac%ba%e8%af%88%e3%80%82%0aSpark%20Streaming%c2%a0%e4%bb%a3%e7%a0%81%0a%e6%88%91%e4%bb%ac%e7%9a%84%e4%be%8b%e5%ad%90%e4%b8%ad%e7%9a%84main%c2%a0class%e6%98%af%ef%bc%9a%0acom.cloudera.sa.example.sparkstreaming.sessionization.SessionizeData%0a%e8%ae%a9%e6%88%91%e4%bb%ac%e6%9d%a5%e7%9c%8b%e7%9c%8b%e8%bf%99%e6%ae%b5%e4%bb%a3%e7%a0%81%e6%ae%b5%ef%bc%88%e5%bf%bd%e7%95%a51-59%e8%a1%8c%ef%bc%8c%e5%85%b6%e4%b8%ad%e5%8c%85%e5%90%abimports%c2%a0%e5%92%8c%e5%85%b6%e4%bb%96%e6%97%a0%e8%81%8a%e7%9a%84%e4%b8%9c%e8%a5%bf%ef%bc%89%e3%80%82%0a60%e5%88%b0112%e8%a1%8c%ef%bc%9a%e8%ae%be%e7%bd%aeSpark%20Streaming%20%e8%bf%99%e4%ba%9b%e8%a1%8c%e6%98%af%e9%9d%9e%e5%b8%b8%e5%9f%ba%e6%9c%ac%e7%9a%84%ef%bc%8c%e7%94%a8%e6%9d%a5%e8%ae%be%e7%bd%ae%e7%9a%84Spark%20Streaming%ef%bc%8c%e5%90%8c%e6%97%b6%e5%8f%af%e4%bb%a5%e9%80%89%e6%8b%a9%e4%bb%8eHDFS%e6%88%96socket%e6%8e%a5%e6%94%b6%e6%95%b0%e6%8d%ae%e6%b5%81%e3%80%82%e5%a6%82%e6%9e%9c%e4%bd%a0%e5%9c%a8Spark%20Streaming%e6%96%b9%e9%9d%a2%e6%98%af%e4%b8%80%e4%b8%aa%e6%96%b0%e6%89%8b%ef%bc%8c%e6%88%91%e5%b7%b2%e7%bb%8f%e6%b7%bb%e5%8a%a0%e4%ba%86%e4%b8%80%e4%ba%9b%e8%af%a6%e7%bb%86%e7%9a%84%e6%b3%a8%e9%87%8a%e5%b8%ae%e5%8a%a9%e7%90%86%e8%a7%a3%e4%bb%a3%e7%a0%81%e3%80%82%c2%a0%ef%bc%88%e6%88%91%e4%b8%8d%e6%89%93%e7%ae%97%e5%9c%a8%e8%bf%99%e9%87%8c%e8%af%a6%e8%b0%88%ef%bc%8c%e5%9b%a0%e4%b8%ba%e4%bb%8d%e7%84%b6%e5%9c%a8%e6%a0%b7%e4%be%8b%e4%bb%a3%e7%a0%81%e9%87%8c%e3%80%82%ef%bc%89%0a%2f%2fThis%20is%20just%20creating%20a%20Spark%20Config%20object.%20I%20don%26%2339%3bt%20do%20much%20here%20but%20%20%2f%2fadd%20the%20app%20name.%20There%20are%20tons%20of%20options%20to%20put%20into%20the%20Spark%20config%2c%20%20%2f%2fbut%20none%20are%20needed%20for%20this%20simple%20example.%20%20val%20sparkConf%20%3d%20new%20SparkConf%28%29." aria-label=Tumblr><i class="fab fa-tumblr fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmtunique.com%2fposts%2fspark_streaming_session%2f&t=%e6%80%8e%e6%a0%b7%e5%88%a9%e7%94%a8Spark%20Streaming%e5%92%8cHadoop%e5%ae%9e%e7%8e%b0%e8%bf%91%e5%ae%9e%e6%97%b6%e7%9a%84%e4%bc%9a%e8%af%9d%e8%bf%9e%e6%8e%a5" aria-label="Hacker News"><i class="fab fa-hacker-news fa-lg" aria-hidden=true></i></a></li></ul></div><div id=actions-footer><a id=menu-toggle class=icon href=# onclick="return $('#nav-footer').toggle(),!1" aria-label=Menu><i class="fas fa-bars fa-lg" aria-hidden=true></i> Menu</a>
 <a id=toc-toggle class=icon href=# onclick="return $('#toc-footer').toggle(),!1" aria-label=TOC><i class="fas fa-list fa-lg" aria-hidden=true></i> TOC</a>
 <a id=share-toggle class=icon href=# onclick="return $('#share-footer').toggle(),!1" aria-label=Share><i class="fas fa-share-alt fa-lg" aria-hidden=true></i> share</a>
